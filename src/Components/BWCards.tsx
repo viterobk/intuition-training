@@ -1,17 +1,15 @@
 /* eslint-disable import/no-anonymous-default-export */
 import {
-  Typography,
   LinearProgress,
-  Button,
-  IconButton,
 } from '@mui/material';
 import TopBar from './TopBar';
 import './BWCards.css'
-import { createRef, useState, useEffect } from 'react';
+import { useState } from 'react';
 
 const isBlack = () => Math.random() < 0.5;
 
 export default function() {
+  document.title = 'Ч/Б карты'
   const [totalAnswers, setTotalAnswers] = useState(0)
   const [correctAnswers, setCorrectAnswers] = useState(0)
   const [isNextBlack, setIsNextBlack] = useState(isBlack());

@@ -12,6 +12,7 @@ import TopBar from './TopBar';
 
 class Home extends Component {
     render() {
+        document.title = 'Тренировка интуиции'
         return (
             <div className='Home'>
                 <TopBar/>
