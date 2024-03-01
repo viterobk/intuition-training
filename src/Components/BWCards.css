@@ -8,7 +8,7 @@
 }
 
 .bwc-container-right {
-  height: 350px;
+  height: 280px;
   margin-top: 20px;
   display: flex;
   justify-content: center;
@@ -16,8 +16,8 @@
 }
 
 .bwc .bwc-result {
-  width: 350px;
-  height: 350px;
+  width: 280px;
+  height: 280px;
   border: 2px solid gray;
   border-radius: 15px;
   background-color: bisque;
@@ -39,7 +39,7 @@
 
 .bwc .control-buttons .bwc-button {
   display: flex;
-  width: 150px;
+  width: 120px;
   height: 80px;
   border: 2px solid gray;
   border-radius: 15px;
