@@ -1,0 +1,16 @@
+.Home .Home-timeritem {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.Home .Home-listitem-doublepadding {
+    padding-right: 96px;
+}
+
+.Home .Home-fab {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+}
