@@ -9,7 +9,7 @@ import TopBar from './TopBar';
 import './BWCards.css'
 import { createRef, useState, useEffect } from 'react';
 
-const isBlack = () => Math.random() > 0.5;
+const isBlack = () => Math.random() < 0.5;
 
 export default function() {
   const [totalAnswers, setTotalAnswers] = useState(0)
@@ -40,8 +40,8 @@ export default function() {
       <div className='bwc-container-center'>
         <div id='result' className={`bwc-result ${showResult ? resultClass : ''}`}>&nbsp;</div>
         <div className='control-buttons'>
-          <div id='btn-black' className='bwc-button bwc-button-black' onClick={() => displayResult(true)}>&nbsp;</div>
-          <div id='btn-white' className='bwc-button bwc-button-white' onClick={() => displayResult(false)}>&nbsp;</div>
+          <div id='btn-black' className='bwc-button bwc-button-white' onClick={() => displayResult(false)}>&nbsp;</div>
+          <div id='btn-white' className='bwc-button bwc-button-black' onClick={() => displayResult(true)}>&nbsp;</div>
         </div>
       </div>
       <div className='bwc-container-right'>
