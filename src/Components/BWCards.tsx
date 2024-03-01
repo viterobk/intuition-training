@@ -17,7 +17,7 @@ export default function() {
   const [isNextBlack, setIsNextBlack] = useState(isBlack());
   const [showResult, setShowResult] = useState(false);
   const resultClass = isNextBlack ? 'bwc-result-black' : 'bwc-result-white';
-  const resultPercent = totalAnswers > 0 ? Math.round(correctAnswers * 100 / totalAnswers) : 100;
+  const resultPercent = totalAnswers > 0 ? Math.round(correctAnswers * 100 / totalAnswers) : 50;
   const displayResult = (isAnswerBlack) => {
     if (showResult) {
       return;
