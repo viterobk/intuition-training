@@ -35,22 +35,14 @@ export default function() {
 
   return <div className='bwc'>
     <TopBar text='Черно-белые карты'/>
-    <div className='bwc-container'>
-      <div className='bwc-container-left'>&nbsp;</div>
-      <div className='bwc-container-center'>
-        <div id='result' className={`bwc-result ${showResult ? resultClass : ''}`}>&nbsp;</div>
-        <div className='control-buttons'>
-          <div id='btn-black' className='bwc-button bwc-button-white' onClick={() => displayResult(false)}>&nbsp;</div>
-          <div id='btn-white' className='bwc-button bwc-button-black' onClick={() => displayResult(true)}>&nbsp;</div>
-        </div>
-      </div>
-      <div className='bwc-container-right'>
-        <Typography variant='h6'>
-          {`${resultPercent}%`}<br/>
-          {`(${correctAnswers}/${totalAnswers})`}
-        </Typography>
+    <div className='bwc-info'><b>{`${resultPercent}%`}</b> <span>{`(${correctAnswers}/${totalAnswers})`}</span></div>
+    <LinearProgress variant='determinate' value={resultPercent}/>
+    <div className='bwc-container-center'>
+      <div id='result' className={`bwc-result ${showResult ? resultClass : ''}`}>&nbsp;</div>
+      <div className='control-buttons'>
+        <div id='btn-black' className='bwc-button bwc-button-white' onClick={() => displayResult(false)}>&nbsp;</div>
+        <div id='btn-white' className='bwc-button bwc-button-black' onClick={() => displayResult(true)}>&nbsp;</div>
       </div>
     </div>
-    
   </div>
 }

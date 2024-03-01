@@ -2,22 +2,22 @@
   display: flex;
   justify-content: center;
 }
-
-.bwc .bwc-container>div {
-  width: 100%;
+.bwc .bwc-info {
+  font-size: large;
+  margin-top: 20px;
 }
 
-.bwc-container-right {
-  height: 280px;
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.bwc .MuiLinearProgress-colorPrimary {
+  background-color:tomato
+}
+
+.bwc .MuiLinearProgress-barColorPrimary {
+  background-color: lightgreen;
 }
 
 .bwc .bwc-result {
-  width: 280px;
-  height: 280px;
+  width: 300px;
+  height: 300px;
   border: 2px solid gray;
   border-radius: 15px;
   background-color: bisque;
@@ -39,7 +39,7 @@
 
 .bwc .control-buttons .bwc-button {
   display: flex;
-  width: 120px;
+  width: 130px;
   height: 80px;
   border: 2px solid gray;
   border-radius: 15px;
