@@ -4,26 +4,29 @@ import {
     ListItem,
     ListItemButton,
     ListItemText,
+    Typography,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import './Home.css';
 import { observer } from 'mobx-react';
 import TopBar from './TopBar';
+import Compare from '@mui/icons-material/Compare';
 
 class Home extends Component {
     render() {
         document.title = 'Тренировка интуиции'
         return (
             <div className='Home'>
-                <TopBar/>
+                <TopBar showTimer={false} showHome={false}/>
                 <List className='Home-list'>
-                    <ListItem className="Home-listitem-doublepadding">
+                    <ListItem>
                         <ListItemButton
-                            className='Home-timeritem'
-                            component={Link}
-                            to={`/bwc`}>
-                            <ListItemText
-                                primary={'Ч/Б карты'} />
+                          className="list-button"
+                          component={Link}
+                          to={`/bwc`}>
+                          <Compare className='list-icon'/>
+                          <ListItemText
+                            primary={<b>Черно-белые карты</b>} />
                         </ListItemButton>
                     </ListItem>
                 </List>

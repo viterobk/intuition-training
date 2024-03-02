@@ -16,6 +16,7 @@ export default function() {
   const [showResult, setShowResult] = useState(false);
   const resultClass = isNextBlack ? 'bwc-result-black' : 'bwc-result-white';
   const resultPercent = totalAnswers > 0 ? Math.round(correctAnswers * 100 / totalAnswers) : 50;
+
   const displayResult = (isAnswerBlack) => {
     if (showResult) {
       return;
@@ -28,6 +29,15 @@ export default function() {
     setTotalAnswers(totalAnswers + 1);
     if (isNextBlack === isAnswerBlack) {
       setCorrectAnswers(correctAnswers + 1);
+    }
+  }
+
+  document.onkeydown = (e) => {
+    if (e.key === 'ArrowLeft') {
+      displayResult(false);
+    }
+    if (e.key === 'ArrowRight') {
+      displayResult(true);
     }
   }
 

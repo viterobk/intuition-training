@@ -1,51 +1,56 @@
-import { AppBar, Box, IconButton, Toolbar, Typography } from '@mui/material';
-import ArrowBack from '@mui/icons-material/ArrowBack';
-import Check from '@mui/icons-material/Check';
-import { Link, useNavigate } from 'react-router-dom';
+/* eslint-disable import/no-anonymous-default-export */
+import { AppBar, IconButton, Toolbar, Typography } from '@mui/material';
+import Home from '@mui/icons-material/Home';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import './TopBar.css'
 
 const DEFAULT_HEADER = 'Интуитивные тренировки';
+const checkTimeObj = {
+  callback: () => {},
+}
+setInterval(() => {
+  checkTimeObj.callback();
+}, 500)
+
+const getTimeString = (startTime) => {
+  const totalSeconds = Math.floor(((new Date()).getTime() - startTime.getTime()) / 1000);
+  const seconds = totalSeconds % 60
+  const minutes = ((totalSeconds - seconds) / 60) % 60;
+  const hours = (totalSeconds - minutes * 60 - seconds) / (60 * 60)
+  return `${hours}:${minutes > 9 ? '' : '0'}${minutes}:${seconds > 9 ? '' : '0'}${seconds}`;
+}
 
 export default (props) => {
-    const { text = DEFAULT_HEADER } = props;
+    const {
+      text = DEFAULT_HEADER,
+      showTimer = true,
+      showHome = true,
+    } = props;
+    const [startTime, _] = useState(new Date())
+    const [timeString, setTimeString] = useState(getTimeString(startTime))
+    checkTimeObj.callback = () => {
+      setTimeString(getTimeString(startTime));
+    }
     const navigate = useNavigate();
-    const backClicked = () => {
+    const homeClicked = () => {
         const e = { cancel: false };
-        props.onBackClick && props.onBackClick(e);
-        if(!e.cancel) navigate(props.backPath);
+        if(!e.cancel) navigate('/');
     }
-    const renderOkButton = () => {
-        if(!props.backPath || !props.onOkClick) {
-            return;
-        }
-        return (
-            <IconButton
-                component={Link}
-                to={props.backPath}
-                onClick={props.onOkClick}>
-                <Check style={{color: '5f5'}}/>
-            </IconButton>
-        )
-    }
-    const renderBackButton = () => {
-        if(props.backPath) {
-            return <IconButton
-                color='inherit'
-                onClick={backClicked}
-            >
-                <ArrowBack/>
-            </IconButton>
-        }
-        return <IconButton disabled>
-            <ArrowBack/>
-        </IconButton>
+    const renderHomeButton = () => {
+        return <IconButton
+              color='inherit'
+              onClick={homeClicked}
+          >
+            <Home/>
+          </IconButton>
     }
     return (
-        <AppBar position="sticky">
-            <Toolbar>
-                {renderBackButton()}
-            <Typography variant='h6' noWrap>{text}</Typography>
-            <Box style={{flex: 1}}/>
-            {renderOkButton()}
+        <AppBar position="sticky" className='top-bar'>
+            <Toolbar className='toolbar'>
+              <div>{showHome && renderHomeButton()}</div>
+              <Typography variant='h6' noWrap>{text}</Typography>
+              <div>{showTimer && <Typography variant='h6' noWrap>{timeString}</Typography>}</div>
             </Toolbar>
         </AppBar>
     )

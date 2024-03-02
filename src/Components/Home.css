@@ -1,16 +1,23 @@
-.Home .Home-timeritem {
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-    min-width: 0;
-}
-
-.Home .Home-listitem-doublepadding {
-    padding-right: 96px;
-}
-
 .Home .Home-fab {
     position: fixed;
     bottom: 20px;
     right: 20px;
+}
+
+.Home .list-icon {
+  margin-right: 15px;
+}
+
+.Home .list-text {
+  font-weight: bold;
+}
+
+.Home .list-button {
+  color:#1976d2;
+  border-radius: 15px;
+  border: 1px solid #1976d2;
+}
+
+.Home .list-button:hover {
+  background-color: lightblue;
 }
