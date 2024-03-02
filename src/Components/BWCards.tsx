@@ -46,10 +46,10 @@ export default function() {
     <div className='bwc-info'><b>{`${resultPercent}%`}</b> <span>{`(${correctAnswers}/${totalAnswers})`}</span></div>
     <LinearProgress variant='determinate' value={resultPercent}/>
     <div className='bwc-container-center'>
-      <div id='result' className={`bwc-result ${showResult ? resultClass : ''}`}>&nbsp;</div>
+      <div id='result' className={`bwc-result ${showResult ? resultClass : ''}`}></div>
       <div className='control-buttons'>
-        <div id='btn-black' className='bwc-button bwc-button-white' onClick={() => displayResult(false)}>&nbsp;</div>
-        <div id='btn-white' className='bwc-button bwc-button-black' onClick={() => displayResult(true)}>&nbsp;</div>
+        <div id='btn-black' className='bwc-button bwc-button-white' onClick={() => displayResult(false)}></div>
+        <div id='btn-white' className='bwc-button bwc-button-black' onClick={() => displayResult(true)}></div>
       </div>
     </div>
   </div>
