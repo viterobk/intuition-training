@@ -4,17 +4,16 @@ var doCache = true;
 
 // Name our cache
 var CACHE_NAME = 'intuition-training-cache-v1';
+const UNCACHABLE_HOSTS = []
 
 // Delete old caches that are not our current one!
 self.addEventListener("activate", event => {
-  console.log('service worker\'s activate event fired');
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys()
       .then(keyList =>
         Promise.all(keyList.map(key => {
           if (!cacheWhitelist.includes(key)) {
-            console.log('Deleting cache: ' + key)
             return caches.delete(key);
           }
         }))
@@ -23,12 +22,11 @@ self.addEventListener("activate", event => {
 });
 
 // The first time the user starts up the PWA, 'install' is triggered.
-self.addEventListener('install', function(event) {
-  console.log('service worker\'s install event fired');
+self.addEventListener('install', function (event) {
   if (doCache) {
     event.waitUntil(
       caches.open(CACHE_NAME)
-        .then(function(cache) {
+        .then(function (cache) {
           // Get the assets manifest so we can see what our js file is named
           // This is because webpack hashes it
           fetch("asset-manifest.json")
@@ -43,7 +41,6 @@ self.addEventListener('install', function(event) {
                 "/",
               ]
               cache.addAll(urlsToCache)
-              console.log('cached');
             })
         })
     );
@@ -52,13 +49,28 @@ self.addEventListener('install', function(event) {
 
 // When the webpage goes to fetch files, we intercept that request and serve up the matching files
 // if we have them
-self.addEventListener('fetch', function(event) {
-    console.log('service worker\'s fetch event fired');
-    if (doCache) {
-      event.respondWith(
-          caches.match(event.request).then(function(response) {
-              return response || fetch(event.request);
-          })
-      );
-    }
+self.addEventListener('fetch', (event) => {
+  const targetUrl = new URL(event.request.url);
+  const targetHost = targetUrl.host;
+  if (doCache) {
+    event.respondWith(
+      caches.match(event.request)
+        .then(async (response) => {
+          try {
+            const fetchResponse = await fetch(event.request);
+            if (UNCACHABLE_HOSTS.includes(targetHost)) {
+              return fetchResponse;
+            }
+            const cache = await caches.open(CACHE_NAME);
+            await cache.add(fetchResponse.url);
+            return fetchResponse;
+          } catch {
+            return response;
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+    );
+  }
 });
