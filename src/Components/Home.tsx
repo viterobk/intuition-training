@@ -29,6 +29,16 @@ class Home extends Component {
                             primary={<b>Черно-белые карты</b>} />
                         </ListItemButton>
                     </ListItem>
+                    <ListItem>
+                      <ListItemButton
+                        className="list-button"
+                        component={Link}
+                        to={`/num`}>
+                        <Compare className='list-icon'/>
+                        <ListItemText
+                          primary={<b>Числа от 1 до 9</b>} />
+                      </ListItemButton>
+                    </ListItem>
                 </List>
             </div>
         )

@@ -7,6 +7,7 @@ import {
 import './App.css';
 import Home from './Home';
 import BWCards from './BWCards';
+import Numbers from './Numbers';
 
 export default () => {
   return (
@@ -15,6 +16,7 @@ export default () => {
         <Routes>
           <Route path='/' element={<Home />} />
           <Route path='/bwc' element={<BWCards/>} />
+          <Route path='/num' element={<Numbers/>} />
         </Routes>
       </Router>
     </div>

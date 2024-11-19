@@ -1,0 +1,36 @@
+.numrow {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin: 10px;
+}
+
+.numrow .numrow-dig {
+  display: flex;
+  width: 60px;
+  height: 60px;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: large;
+  border: 2px solid gray;
+  border-radius: 15px;
+  background-color: bisque;
+}
+
+.numrow .numrow-dig.numrow-dig-selectable {
+  cursor: pointer;
+}
+
+.numrow .numrow-dig.numrow-dig-empty {
+  background-color: transparent;
+  border-style: dashed;
+}
+
+.numrow .numrow-dig.numrow-dig-good {
+  background-color: lightgreen;
+}
+
+.numrow .numrow-dig.numrow-dig-bad {
+  background-color: tomato;
+}

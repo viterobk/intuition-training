@@ -1,56 +1,103 @@
 /* eslint-disable import/no-anonymous-default-export */
 import {
+  Button,
   LinearProgress,
 } from '@mui/material';
 import TopBar from './TopBar';
 import './BWCards.css'
 import { useState } from 'react';
+import NumberRow from './NumberRow';
 
-const isBlack = () => Math.random() < 0.5;
+const INITIAL_NUMBER_ROWS = [[1, 2, 3, 4, 5, 6, 7, 8, 9]];
+const FIRST_SELECTION_SIZE = 5;
+
+const generateResult = () => {
+  let min = 2;
+  let max = -1;
+  const result = {
+    good: -1,
+    bad: -1,
+  }
+  for (let i = 1; i <= 9; i++) {
+    const rnd = Math.random();
+    if (rnd > max) {
+      result.good = i;
+      max = rnd;
+    } 
+    if (rnd < min) {
+      result.bad = i;
+      min = rnd;
+    }
+  }
+  return result;
+}
+
+const getUpdatedRows = (rows, result) => {
+  if (rows.length === 1) {
+    return [...rows, Array.from({ length: FIRST_SELECTION_SIZE })];
+  }
+  const lastRow = rows[rows.length - 1];
+  if (lastRow.length === 1) {
+    return [...rows];
+  }
+  if (lastRow.every(Boolean) && (lastRow.includes(result.good) || lastRow.includes(result.bad))) {
+    return [...rows, Array.from({ length: lastRow.length - 1 })]
+  }
+  return [...rows];
+}
+
+const addNumber = (rows, number, result) => {
+  const lastRow = rows[rows.length - 1];
+  if (lastRow.includes(number)) {
+    return rows;
+  }
+  const nextIndex = lastRow.indexOf(undefined);
+  lastRow[nextIndex] = number;
+  return getUpdatedRows(rows, result);
+}
 
 export default function() {
-  document.title = 'Ч/Б карты'
-  const [totalAnswers, setTotalAnswers] = useState(0)
-  const [correctAnswers, setCorrectAnswers] = useState(0)
-  const [isNextBlack, setIsNextBlack] = useState(isBlack());
-  const [showResult, setShowResult] = useState(false);
-  const resultClass = isNextBlack ? 'bwc-result-black' : 'bwc-result-white';
-  const resultPercent = totalAnswers > 0 ? Math.round(correctAnswers * 100 / totalAnswers) : 50;
-
-  const displayResult = (isAnswerBlack) => {
-    if (showResult) {
-      return;
+  document.title = 'Числа от 1 до 9'
+  const [result, setResult] = useState<{ good?: number, bad?: number }>({});
+  const [hiddenResult, setHiddenResult] = useState(generateResult());
+  const [rows, setRows] = useState(getUpdatedRows(INITIAL_NUMBER_ROWS, hiddenResult));
+  
+  const numberSelected = (number) => {
+    const updatedRows = addNumber(rows, number, hiddenResult);
+    if (updatedRows) {
+      setRows(updatedRows);
+      const lastRow = updatedRows[updatedRows.length - 1];
+      if (lastRow.every(Boolean)) {
+        setResult(hiddenResult);
+      }
     }
-    setTimeout(() => {
-      setShowResult(false);
-      setIsNextBlack(isBlack());
-    }, 1000);
-    setShowResult(true);
-    setTotalAnswers(totalAnswers + 1);
-    if (isNextBlack === isAnswerBlack) {
-      setCorrectAnswers(correctAnswers + 1);
-    }
+    
   }
-
   document.onkeydown = (e) => {
     if (e.key === 'ArrowLeft') {
-      displayResult(false);
+    
     }
     if (e.key === 'ArrowRight') {
-      displayResult(true);
+    
     }
   }
 
-  return <div className='bwc'>
-    <TopBar text='Черно-белые карты'/>
-    <div className='bwc-info'><b>{`${resultPercent}%`}</b> <span>{`(${correctAnswers}/${totalAnswers})`}</span></div>
-    <LinearProgress variant='determinate' value={resultPercent}/>
-    <div className='bwc-container-center'>
-      <div id='result' className={`bwc-result ${showResult ? resultClass : ''}`}></div>
-      <div className='control-buttons'>
-        <div id='btn-black' className='bwc-button bwc-button-white' onClick={() => displayResult(false)}></div>
-        <div id='btn-white' className='bwc-button bwc-button-black' onClick={() => displayResult(true)}></div>
-      </div>
-    </div>
+  return <div className='numbers'>
+    <TopBar text='Числа от 1 до 9'/>
+    {
+      rows.filter(Boolean).map((row, index) => {
+        return (<NumberRow
+          key={index}
+          numbers={row}
+          good={result.good}
+          bad={result.bad}
+          onSelect={rows.length - 2 === index && !result.good ? numberSelected : undefined}/>)
+      })
+    }
+    <Button onClick={() => {
+      setResult({});
+      setHiddenResult(generateResult());
+      setRows(getUpdatedRows(INITIAL_NUMBER_ROWS, hiddenResult));
+    }}>Сбросить</Button>
   </div>
 }
