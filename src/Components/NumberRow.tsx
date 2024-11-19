@@ -20,7 +20,7 @@ export default function({ numbers, good, bad, onSelect }: INumbersRowProps) {
       classes.push('numrow-dig-empty');
       return classes.join(' ');
     }
-    if (onSelect) {
+    if (value && onSelect) {
       classes.push('numrow-dig-selectable');
     }
     if (value === good) {

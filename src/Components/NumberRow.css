@@ -20,6 +20,7 @@
 
 .numrow .numrow-dig.numrow-dig-selectable {
   cursor: pointer;
+  border-color: black;
 }
 
 .numrow .numrow-dig.numrow-dig-empty {
