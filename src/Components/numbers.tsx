@@ -1,10 +1,8 @@
 /* eslint-disable import/no-anonymous-default-export */
 import {
   Button,
-  LinearProgress,
 } from '@mui/material';
 import TopBar from './TopBar';
-import './BWCards.css'
 import { useState } from 'react';
 import NumberRow from './NumberRow';
 

@@ -1,7 +1,5 @@
 /* eslint-disable import/no-anonymous-default-export */
-import TopBar from './TopBar';
 import './NumberRow.css'
-import { useState } from 'react';
 
 interface INumbersRowProps {
   numbers?: any[];
