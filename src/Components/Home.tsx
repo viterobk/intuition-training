@@ -11,6 +11,7 @@ import './Home.css';
 import { observer } from 'mobx-react';
 import TopBar from './TopBar';
 import Compare from '@mui/icons-material/Compare';
+import Pin from '@mui/icons-material/Pin';
 
 class Home extends Component {
     render() {
@@ -34,7 +35,7 @@ class Home extends Component {
                         className="list-button"
                         component={Link}
                         to={`/num`}>
-                        <Compare className='list-icon'/>
+                        <Pin className='list-icon'/>
                         <ListItemText
                           primary={<b>Числа от 1 до 9</b>} />
                       </ListItemButton>
