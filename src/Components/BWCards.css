@@ -55,3 +55,64 @@
 .bwc .control-buttons .bwc-button.bwc-button-white {
   background-color: white;
 }
+
+.bwc .bwc-score-diff {
+  margin-left: 8px;
+  color: #555;
+}
+
+.bwc .bwc-chart {
+  margin: 10px auto 24px;
+  max-width: 360px;
+  padding: 0 12px;
+}
+
+.bwc .bwc-chart-title {
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.bwc .bwc-chart-svg {
+  width: 100%;
+  height: auto;
+  background: #faf6ea;
+  border: 1px solid #c8c0b0;
+  border-radius: 12px;
+}
+
+.bwc .bwc-chart-zero {
+  stroke: #999;
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+.bwc .bwc-chart-line {
+  fill: none;
+  stroke: #1976d2;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.bwc .bwc-chart-point {
+  stroke: #1976d2;
+  stroke-width: 1;
+}
+
+.bwc .bwc-chart-point-positive {
+  fill: lightgreen;
+}
+
+.bwc .bwc-chart-point-negative {
+  fill: tomato;
+}
+
+.bwc .bwc-chart-label {
+  fill: #666;
+  font-size: 10px;
+}
+
+.bwc .bwc-chart-empty {
+  fill: #888;
+  font-size: 11px;
+}
