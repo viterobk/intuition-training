@@ -8,7 +8,7 @@ import { useState } from 'react';
 
 const isBlack = () => Math.random() < 0.5;
 
-function ScoreChart({ history }: { history: number[] }) {
+function ScoreChart({ history, offset }: { history: number[]; offset: number }) {
   const width = 320;
   const height = 140;
   const padding = { top: 16, right: 12, bottom: 20, left: 28 };
@@ -18,7 +18,7 @@ function ScoreChart({ history }: { history: number[] }) {
   if (history.length === 0) {
     return (
       <div className='bwc-chart'>
-        <div className='bwc-chart-title'>Разность правильных и неправильных</div>
+        <div className='bwc-chart-title'>Правильных ответов</div>
         <svg className='bwc-chart-svg' viewBox={`0 0 ${width} ${height}`} role='img' aria-label='График разности ответов'>
           <line
             x1={padding.left}
@@ -46,13 +46,35 @@ function ScoreChart({ history }: { history: number[] }) {
   const points = history.map((value, index) => `${xScale(index)},${yScale(value)}`).join(' ');
   const zeroY = yScale(0);
   const last = history[history.length - 1];
+  const decadeMarks = history
+    .map((_, index) => ({ index, answerNumber: offset + index + 1 }))
+    .filter(({ answerNumber }) => answerNumber % 10 === 0);
 
   return (
     <div className='bwc-chart'>
       <div className='bwc-chart-title'>
-        Разность: <b>{last > 0 ? `+${last}` : last}</b>
+        Правильных ответов: <b>{last > 0 ? `+${last}` : last}</b>
       </div>
       <svg className='bwc-chart-svg' viewBox={`0 0 ${width} ${height}`} role='img' aria-label='График разности ответов'>
+        {decadeMarks.map(({ index, answerNumber }) => (
+          <g key={`decade-${answerNumber}`}>
+            <line
+              x1={xScale(index)}
+              y1={padding.top}
+              x2={xScale(index)}
+              y2={padding.top + plotHeight}
+              className='bwc-chart-decade'
+            />
+            <text
+              x={xScale(index)}
+              y={height - 4}
+              textAnchor='middle'
+              className='bwc-chart-label'
+            >
+              {answerNumber}
+            </text>
+          </g>
+        ))}
         <line
           x1={padding.left}
           y1={zeroY}
@@ -66,7 +88,7 @@ function ScoreChart({ history }: { history: number[] }) {
         <polyline points={points} className='bwc-chart-line' />
         {history.map((value, index) => (
           <circle
-            key={index}
+            key={offset + index}
             cx={xScale(index)}
             cy={yScale(value)}
             r={history.length > 40 ? 2 : 3}
@@ -89,6 +111,7 @@ export default function() {
   const resultPercent = totalAnswers > 0 ? Math.round(correctAnswers * 100 / totalAnswers) : 50;
   const incorrectAnswers = totalAnswers - correctAnswers;
   const scoreDiff = correctAnswers - incorrectAnswers;
+  const chartOffset = Math.max(0, totalAnswers - scoreHistory.length);
 
   const displayResult = (isAnswerBlack: boolean) => {
     if (showResult) {
@@ -121,7 +144,6 @@ export default function() {
     <div className='bwc-info'>
       <b>{`${resultPercent}%`}</b>{' '}
       <span>{`(${correctAnswers}/${totalAnswers})`}</span>
-      <span className='bwc-score-diff'>{` разность: ${scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff}`}</span>
     </div>
     <LinearProgress variant='determinate' value={resultPercent}/>
     <div className='bwc-container-center'>
@@ -131,6 +153,6 @@ export default function() {
         <div id='btn-white' className='bwc-button bwc-button-black' onClick={() => displayResult(true)}></div>
       </div>
     </div>
-    <ScoreChart history={scoreHistory} />
+    <ScoreChart history={scoreHistory} offset={chartOffset} />
   </div>
 }
