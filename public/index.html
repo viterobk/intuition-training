@@ -54,13 +54,34 @@
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
           navigator.serviceWorker.register('service-worker.js').then(function(registration) {
-            // Registration was successful
             console.log('ServiceWorker registration successful with scope: ', registration.scope);
+
+            registration.addEventListener('updatefound', function() {
+              var newWorker = registration.installing;
+              if (!newWorker) {
+                return;
+              }
+
+              newWorker.addEventListener('statechange', function() {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  newWorker.postMessage({ type: 'SKIP_WAITING' });
+                }
+              });
+            });
+
+            navigator.serviceWorker.addEventListener('controllerchange', function() {
+              window.location.reload();
+            });
+
+            document.addEventListener('visibilitychange', function() {
+              if (!document.hidden) {
+                registration.update();
+              }
+            });
           }, function(err) {
-            // registration failed :(
             console.log('ServiceWorker registration failed: ', err);
           }).catch(function(err) {
-            console.log(err)
+            console.log(err);
           });
         });
       } else {
