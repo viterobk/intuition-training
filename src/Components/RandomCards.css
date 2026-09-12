@@ -76,6 +76,12 @@
   transition: left 0.45s ease;
 }
 
+.random-card-slot.is-settled.is-placeholder {
+  opacity: 0;
+  pointer-events: none;
+  transition: left 0.45s ease;
+}
+
 .random-card-number {
   position: absolute;
   top: -22px;

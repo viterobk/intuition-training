@@ -81,11 +81,12 @@ export default function RandomCards() {
 
   const isBusy = Boolean(flight);
   const remaining = deck.length;
-  const pending = Boolean(flight);
-  const totalAfter = drawn.length + (pending ? 1 : 0);
-  const hiddenCount = Math.max(0, totalAfter - VISIBLE_LIMIT);
-  const settledCards = drawn.slice(hiddenCount);
-  const flightSlotIndex = settledCards.length;
+  const flightId = flight?.card.id;
+  const hiddenCount = Math.max(0, drawn.length - VISIBLE_LIMIT);
+  const visibleCards = drawn.slice(hiddenCount);
+  const flightSlotIndex = flightId
+    ? visibleCards.findIndex((card) => card.id === flightId)
+    : -1;
 
   const measureLayout = () => {
     if (!tableRef.current || !fanRef.current) {
@@ -95,7 +96,7 @@ export default function RandomCards() {
     const raw = getComputedStyle(tableRef.current).getPropertyValue('--fan-offset').trim();
     const value = Number.parseFloat(raw);
     if (!Number.isNaN(value) && value > 0) {
-      setFanOffset(value);
+      setFanOffset((prev) => (Math.abs(prev - value) > 0.01 ? value : prev));
     }
 
     if (deckRef.current) {
@@ -142,6 +143,9 @@ export default function RandomCards() {
 
     setDeck(rest);
     setDeckElevated(elevateDeck);
+    // Сразу ставим карту в ряд (невидимый плейсхолдер), чтобы при завершении
+    // анимации не было remount + transition по left.
+    setDrawn((prev) => [...prev, drawnCard]);
     setFlight({ card: drawnCard, phase: 'fly' });
     setFlyActive(false);
 
@@ -154,7 +158,6 @@ export default function RandomCards() {
     }, FLY_MS);
 
     queueTimeout(() => {
-      setDrawn((prev) => [...prev, drawnCard]);
       setFlight(null);
       setFlyActive(false);
       setDeckElevated(false);
@@ -186,7 +189,7 @@ export default function RandomCards() {
     setDeckElevated(false);
   };
 
-  const flightLeft = flightSlotIndex * fanOffset;
+  const flightLeft = Math.max(0, flightSlotIndex) * fanOffset;
   const flightTop = 24;
 
   return (
@@ -196,7 +199,7 @@ export default function RandomCards() {
         <div className='random-cards-stats'>
           <div className='stat-chip'>
             <span>Вытянули</span>
-            <b>{drawn.length + (flight ? 1 : 0)}</b>
+            <b>{drawn.length}</b>
           </div>
           <div className='stat-chip'>
             <span>В колоде</span>
@@ -214,12 +217,13 @@ export default function RandomCards() {
               </div>
             )}
 
-            {settledCards.map((card, index) => {
+            {visibleCards.map((card, index) => {
               const left = index * fanOffset;
+              const isPlaceholder = card.id === flightId;
               return (
                 <div
                   key={card.id}
-                  className='random-card-slot is-settled'
+                  className={`random-card-slot is-settled ${isPlaceholder ? 'is-placeholder' : ''}`}
                   style={{
                     left: `${left}px`,
                     zIndex: 20 + index,
