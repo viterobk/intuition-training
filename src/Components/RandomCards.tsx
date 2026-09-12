@@ -9,6 +9,8 @@ const SUITS = ['c', 'd', 'h', 's'];
 const VISIBLE_LIMIT = 10;
 const FLY_MS = 520;
 const FLIP_MS = 420;
+const COLLECT_MS = 480;
+const SHUFFLE_MS = 920;
 
 type DeckCard = {
   id: string;
@@ -76,10 +78,12 @@ export default function RandomCards() {
   const [flight, setFlight] = useState<Flight | null>(null);
   const [flyActive, setFlyActive] = useState(false);
   const [deckElevated, setDeckElevated] = useState(false);
+  const [isCollecting, setIsCollecting] = useState(false);
+  const [isShuffling, setIsShuffling] = useState(false);
   const [fanOffset, setFanOffset] = useState(28);
   const [deckOrigin, setDeckOrigin] = useState({ left: 0, top: 0 });
 
-  const isBusy = Boolean(flight);
+  const isBusy = Boolean(flight) || isShuffling || isCollecting;
   const remaining = deck.length;
   const flightId = flight?.card.id;
   const hiddenCount = Math.max(0, drawn.length - VISIBLE_LIMIT);
@@ -181,12 +185,34 @@ export default function RandomCards() {
     if (isBusy) {
       return;
     }
+
+    measureLayout();
     const seed = timerSeed(sessionStart);
-    setDeck(shuffleWithSeed(ALL_CARDS, seed));
-    setDrawn([]);
+    const nextDeck = shuffleWithSeed(ALL_CARDS, seed);
+
     setFlight(null);
     setFlyActive(false);
     setDeckElevated(false);
+
+    const startRiffle = () => {
+      setDeck(nextDeck);
+      setIsShuffling(true);
+      queueTimeout(() => {
+        setIsShuffling(false);
+      }, SHUFFLE_MS);
+    };
+
+    if (drawn.length > 0) {
+      setIsCollecting(true);
+      queueTimeout(() => {
+        setDrawn([]);
+        setIsCollecting(false);
+        startRiffle();
+      }, COLLECT_MS);
+      return;
+    }
+
+    startRiffle();
   };
 
   const flightLeft = Math.max(0, flightSlotIndex) * fanOffset;
@@ -208,7 +234,15 @@ export default function RandomCards() {
         </div>
 
         <div className='random-table' ref={tableRef}>
-          <div className='random-table-fan' ref={fanRef} aria-live='polite'>
+          <div
+            className={`random-table-fan ${isCollecting ? 'is-collecting' : ''}`}
+            ref={fanRef}
+            aria-live='polite'
+            style={{
+              ['--collect-left' as string]: `${deckOrigin.left}px`,
+              ['--collect-top' as string]: `${deckOrigin.top}px`,
+            }}
+          >
             {hiddenCount > 0 && (
               <div className='random-stack-base' aria-hidden='true'>
                 <div className='random-stack-layer random-stack-layer-1' />
@@ -277,17 +311,28 @@ export default function RandomCards() {
                 <button
                   ref={deckRef}
                   type='button'
-                  className={`random-deck ${remaining === 0 ? 'is-empty' : ''} ${isBusy ? 'is-busy' : ''} ${deckElevated ? 'is-elevated' : ''}`}
+                  className={[
+                    'random-deck',
+                    remaining === 0 && !isShuffling ? 'is-empty' : '',
+                    isBusy ? 'is-busy' : '',
+                    deckElevated ? 'is-elevated' : '',
+                    isShuffling ? 'is-shuffling' : '',
+                  ].filter(Boolean).join(' ')}
                   onClick={drawTopCard}
                   disabled={isBusy || remaining === 0}
                   aria-label={remaining === 0 ? 'Колода пуста' : 'Взять сверху'}
                 >
-                  {remaining > 0 ? (
-                    Array.from({ length: Math.min(5, remaining) }).map((_, index) => (
+                  {(remaining > 0 || isShuffling) ? (
+                    Array.from({ length: isShuffling ? 6 : Math.min(5, Math.max(remaining, 1)) }).map((_, index) => (
                       <span
                         key={`deck-layer-${index}`}
                         className='random-deck-layer'
-                        style={{ transform: `translate(${index}px, ${-index}px)` }}
+                        style={{
+                          ['--i' as string]: String(index),
+                          ['--dx' as string]: `${index}px`,
+                          ['--dy' as string]: `${-index}px`,
+                          transform: `translate(${index}px, ${-index}px)`,
+                        }}
                       >
                         <img src={cardUrl('back.svg')} alt='' draggable={false} />
                       </span>
@@ -295,7 +340,9 @@ export default function RandomCards() {
                   ) : (
                     <span className='random-deck-empty'>Пусто</span>
                   )}
-                  {remaining > 0 && <span className='random-deck-label'>взять сверху</span>}
+                  {remaining > 0 && !isShuffling && (
+                    <span className='random-deck-label'>взять сверху</span>
+                  )}
                 </button>
               </div>
 
@@ -329,11 +376,22 @@ export default function RandomCards() {
             </div>
 
             <p className='random-deck-hint'>
-              {remaining === 0 ? 'Колода закончилась' : 'Верхняя карта или случайная из колоды'}
+              {isCollecting
+                ? 'Собираем карты…'
+                : isShuffling
+                  ? 'Тасуем колоду…'
+                  : remaining === 0
+                    ? 'Колода закончилась'
+                    : 'Верхняя карта или случайная из колоды'}
             </p>
-            <button type='button' className='random-reset' onClick={resetDeck} disabled={isBusy}>
+            <button
+              type='button'
+              className={`random-reset ${isShuffling || isCollecting ? 'is-shuffling' : ''}`}
+              onClick={resetDeck}
+              disabled={isBusy}
+            >
               <StyleIcon fontSize='small' />
-              Перетасовать
+              {isCollecting || isShuffling ? 'Тасуем…' : 'Перетасовать'}
             </button>
           </div>
         </div>
