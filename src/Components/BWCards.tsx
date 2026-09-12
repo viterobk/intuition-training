@@ -17,8 +17,8 @@ function ScoreChart({ history, offset }: { history: number[]; offset: number }) 
 
   if (history.length === 0) {
     return (
-      <div className='bwc-chart'>
-        <div className='bwc-chart-title'>Правильных ответов</div>
+      <div className='bwc-chart surface-panel'>
+        <div className='bwc-chart-title'>Динамика точности</div>
         <svg className='bwc-chart-svg' viewBox={`0 0 ${width} ${height}`} role='img' aria-label='График разности ответов'>
           <line
             x1={padding.left}
@@ -51,9 +51,9 @@ function ScoreChart({ history, offset }: { history: number[]; offset: number }) 
     .filter(({ answerNumber }) => answerNumber % 10 === 0);
 
   return (
-    <div className='bwc-chart'>
+    <div className='bwc-chart surface-panel'>
       <div className='bwc-chart-title'>
-        Правильных ответов: <b>{last > 0 ? `+${last}` : last}</b>
+        Разность: <b>{last > 0 ? `+${last}` : last}</b>
       </div>
       <svg className='bwc-chart-svg' viewBox={`0 0 ${width} ${height}`} role='img' aria-label='График разности ответов'>
         {decadeMarks.map(({ index, answerNumber }) => (
@@ -139,20 +139,49 @@ export default function() {
     }
   }
 
-  return <div className='bwc'>
+  return <div className='bwc page'>
     <TopBar text='Черно-белые карты'/>
-    <div className='bwc-info'>
-      <b>{`${resultPercent}%`}</b>{' '}
-      <span>{`(${correctAnswers}/${totalAnswers})`}</span>
-    </div>
-    <LinearProgress variant='determinate' value={resultPercent}/>
-    <div className='bwc-container-center'>
-      <div id='result' className={`bwc-result ${showResult ? resultClass : ''}`}></div>
-      <div className='control-buttons'>
-        <div id='btn-black' className='bwc-button bwc-button-white' onClick={() => displayResult(false)}></div>
-        <div id='btn-white' className='bwc-button bwc-button-black' onClick={() => displayResult(true)}></div>
+    <div className='bwc-stats page-section'>
+      <div className='stat-chip'>
+        <b>{`${resultPercent}%`}</b>
+        <span>{`${correctAnswers} из ${totalAnswers}`}</span>
+      </div>
+      <div className='stat-chip'>
+        <span>Разность</span>
+        <b>{scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff}</b>
       </div>
     </div>
-    <ScoreChart history={scoreHistory} offset={chartOffset} />
+    <div className='bwc-progress page-section'>
+      <LinearProgress variant='determinate' value={resultPercent}/>
+    </div>
+    <div className='bwc-container-center page-section'>
+      <div
+        id='result'
+        className={`bwc-result ${showResult ? `${resultClass} is-revealed` : 'is-waiting'}`}
+        aria-live='polite'
+      >
+        {!showResult && <span className='bwc-result-hint'>?</span>}
+      </div>
+      <div className='control-buttons'>
+        <button
+          type='button'
+          id='btn-white'
+          className='bwc-button bwc-button-white'
+          onClick={() => displayResult(false)}
+          aria-label='Белая карта'
+        />
+        <button
+          type='button'
+          id='btn-black'
+          className='bwc-button bwc-button-black'
+          onClick={() => displayResult(true)}
+          aria-label='Чёрная карта'
+        />
+      </div>
+      <p className='bwc-hint'>Стрелки ← → тоже работают</p>
+    </div>
+    <div className='page-section'>
+      <ScoreChart history={scoreHistory} offset={chartOffset} />
+    </div>
   </div>
 }

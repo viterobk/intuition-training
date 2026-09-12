@@ -1,23 +1,112 @@
-.Home .Home-fab {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
+.Home-hero {
+  padding-top: 28px;
+  padding-bottom: 8px;
+  text-align: left;
 }
 
-.Home .list-icon {
-  margin-right: 15px;
+.Home-kicker {
+  margin: 0 0 10px;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-.Home .list-text {
-  font-weight: bold;
+.Home-brand {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(2.1rem, 7vw, 3rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
 }
 
-.Home .list-button {
-  color:#1976d2;
-  border-radius: 15px;
-  border: 1px solid #1976d2;
+.Home-lead {
+  margin: 14px 0 0;
+  max-width: 34ch;
+  color: var(--ink-soft);
+  font-size: 1.05rem;
 }
 
-.Home .list-button:hover {
-  background-color: lightblue;
+.Home-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.Home-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 18px 18px 18px 16px;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow);
+  transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+  animation: rise-in 0.55s ease both;
+}
+
+.Home-card:hover,
+.Home-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--border-strong);
+  background: var(--surface-strong);
+  outline: none;
+}
+
+.Home-card-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  color: var(--accent-deep);
+}
+
+.Home-card.tone-cards .Home-card-icon {
+  background: linear-gradient(145deg, #d7ece8, #b9ddd7);
+}
+
+.Home-card.tone-numbers .Home-card-icon {
+  background: linear-gradient(145deg, #e6e2d4, #d5cfb8);
+  color: #5c5340;
+}
+
+.Home-card-copy h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.Home-card-copy p {
+  margin: 6px 0 0;
+  color: var(--ink-muted);
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.Home-card-go {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  transition: transform 0.22s ease;
+}
+
+.Home-card:hover .Home-card-go,
+.Home-card:focus-visible .Home-card-go {
+  transform: translateX(3px);
 }

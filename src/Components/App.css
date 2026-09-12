@@ -1,45 +1,46 @@
-body .intuition-training {
-  text-align: center;
-}
-
 .App {
   text-align: center;
   display: block;
   margin: 0 auto;
   width: 100%;
-  max-width: 600px;
+  max-width: 640px;
+  min-height: 100vh;
+  padding-bottom: 40px;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.page {
+  animation: rise-in 0.55s ease both;
 }
 
-.App-header {
-  width: 100%;
-  background-color: cadetblue;
-  position: fixed;
-  height: 80px;
-  top: 0;
-  left: 0;
-  z-index: 100;
+.page-section {
+  padding: 0 var(--space);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
+  font-size: 0.95rem;
+  color: var(--ink-soft);
 }
 
-.App-link {
-  color: #61dafb;
+.stat-chip b {
+  color: var(--accent-deep);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.surface-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow);
 }

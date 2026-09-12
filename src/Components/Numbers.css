@@ -1,0 +1,31 @@
+.numbers-body {
+  padding-top: 18px;
+}
+
+.numbers-lead {
+  margin: 0 auto 18px;
+  max-width: 36ch;
+  color: var(--ink-soft);
+  font-size: 1rem;
+}
+
+.numbers-board {
+  padding: 14px clamp(6px, 2vw, 12px);
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.numbers-reset {
+  margin-top: 20px !important;
+  border-radius: 14px !important;
+  border-color: var(--border-strong) !important;
+  color: var(--accent-deep) !important;
+  padding: 8px 18px !important;
+  font-weight: 600 !important;
+  background: var(--surface) !important;
+}
+
+.numbers-reset:hover {
+  background: var(--accent-soft) !important;
+  border-color: var(--accent) !important;
+}

@@ -5,6 +5,7 @@ import {
 import TopBar from './TopBar';
 import { useState } from 'react';
 import NumberRow from './NumberRow';
+import './Numbers.css';
 
 const INITIAL_NUMBER_ROWS = [[1, 2, 3, 4, 5, 6, 7, 8, 9]];
 const FIRST_SELECTION_SIZE = 5;
@@ -80,22 +81,35 @@ export default function() {
     }
   }
 
-  return <div className='numbers'>
+  return <div className='numbers page'>
     <TopBar text='Числа от 1 до 9'/>
-    {
-      rows.filter(Boolean).map((row, index) => {
-        return (<NumberRow
-          key={index}
-          numbers={row}
-          good={result.good}
-          bad={result.bad}
-          onSelect={rows.length - 2 === index && !result.good ? numberSelected : undefined}/>)
-      })
-    }
-    <Button onClick={() => {
-      setResult({});
-      setHiddenResult(generateResult());
-      setRows(getUpdatedRows(INITIAL_NUMBER_ROWS, hiddenResult));
-    }}>Сбросить</Button>
+    <div className='numbers-body page-section'>
+      <p className='numbers-lead'>
+        Выберите числа, которые «звучат» правильно. Поле будет сужаться до финального ответа.
+      </p>
+      <div className='numbers-board surface-panel'>
+        {
+          rows.filter(Boolean).map((row, index) => {
+            return (<NumberRow
+              key={index}
+              numbers={row}
+              good={result.good}
+              bad={result.bad}
+              onSelect={rows.length - 2 === index && !result.good ? numberSelected : undefined}/>)
+          })
+        }
+      </div>
+      <Button
+        className='numbers-reset'
+        variant='outlined'
+        onClick={() => {
+          setResult({});
+          setHiddenResult(generateResult());
+          setRows(getUpdatedRows(INITIAL_NUMBER_ROWS, hiddenResult));
+        }}
+      >
+        Сбросить
+      </Button>
+    </div>
   </div>
 }

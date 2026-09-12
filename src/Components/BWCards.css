@@ -1,124 +1,179 @@
-.bwc .bwc-container {
+.bwc-stats {
   display: flex;
   justify-content: center;
-}
-.bwc .bwc-info {
-  font-size: large;
-  margin-top: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
 }
 
-.bwc .MuiLinearProgress-colorPrimary {
-  background-color:tomato
+.bwc-progress {
+  margin-top: 14px;
+}
+
+.bwc .MuiLinearProgress-root {
+  height: 8px !important;
+  border-radius: 999px;
+  overflow: hidden;
+  background-color: rgba(20, 42, 40, 0.08) !important;
 }
 
 .bwc .MuiLinearProgress-barColorPrimary {
-  background-color: lightgreen;
+  background: linear-gradient(90deg, #2f9e6c, #0f766e) !important;
+  border-radius: 999px;
+}
+
+.bwc-container-center {
+  margin-top: 18px;
 }
 
 .bwc .bwc-result {
-  width: 300px;
-  height: 300px;
-  border: 2px solid gray;
-  border-radius: 15px;
-  background-color: bisque;
-  display: inline-block;
-  margin: 20px;
+  position: relative;
+  width: min(280px, 72vw);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(230, 240, 238, 0.85));
+  box-shadow: var(--shadow);
+  display: grid;
+  place-items: center;
+  transition: background 0.35s ease, transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.bwc .bwc-result.is-waiting {
+  animation: soft-pulse 2.8s ease-in-out infinite;
+}
+
+.bwc .bwc-result.is-revealed {
+  animation: none;
+  transform: scale(1.02);
 }
 
 .bwc .bwc-result.bwc-result-black {
-  background-color: black;
+  background: #141414;
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
 }
 
 .bwc .bwc-result.bwc-result-white {
-  background-color: white;
+  background: #ffffff;
+  box-shadow: 0 18px 36px rgba(20, 42, 40, 0.12);
+}
+
+.bwc-result-hint {
+  font-family: var(--font-display);
+  font-size: 3.5rem;
+  color: var(--ink-muted);
+  opacity: 0.55;
 }
 
 .bwc .control-buttons {
-  display: flexbox;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 22px;
 }
 
 .bwc .control-buttons .bwc-button {
-  display: flex;
-  width: 130px;
-  height: 80px;
-  border: 2px solid gray;
-  border-radius: 15px;
-  background-color: bisque;
-  display: inline-block;
-  margin: 20px;
+  width: 120px;
+  height: 72px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: var(--shadow);
+}
+
+.bwc .control-buttons .bwc-button:hover {
+  transform: translateY(-2px);
+}
+
+.bwc .control-buttons .bwc-button:active {
+  transform: translateY(1px) scale(0.98);
 }
 
 .bwc .control-buttons .bwc-button.bwc-button-black {
-  background-color: black;
+  background: #141414;
 }
 
 .bwc .control-buttons .bwc-button.bwc-button-white {
-  background-color: white;
+  background: #ffffff;
 }
 
-.bwc .bwc-score-diff {
-  margin-left: 8px;
-  color: #555;
+.bwc-hint {
+  margin: 14px 0 0;
+  color: var(--ink-muted);
+  font-size: 0.85rem;
 }
 
 .bwc .bwc-chart {
-  margin: 10px auto 24px;
-  max-width: 360px;
-  padding: 0 12px;
+  margin: 24px auto 0;
+  max-width: 420px;
+  padding: 14px 14px 10px;
+  text-align: left;
 }
 
 .bwc .bwc-chart-title {
+  margin-bottom: 8px;
   font-size: 0.95rem;
-  margin-bottom: 4px;
+  color: var(--ink-soft);
+}
+
+.bwc .bwc-chart-title b {
+  color: var(--accent-deep);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
 }
 
 .bwc .bwc-chart-svg {
   width: 100%;
   height: auto;
-  background: #faf6ea;
-  border: 1px solid #c8c0b0;
-  border-radius: 12px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
 }
 
 .bwc .bwc-chart-zero {
-  stroke: #999;
+  stroke: rgba(20, 42, 40, 0.25);
   stroke-width: 1;
   stroke-dasharray: 4 3;
 }
 
 .bwc .bwc-chart-decade {
-  stroke: #bbb;
+  stroke: rgba(20, 42, 40, 0.15);
   stroke-width: 1;
   stroke-dasharray: 3 3;
 }
 
 .bwc .bwc-chart-line {
   fill: none;
-  stroke: #1976d2;
-  stroke-width: 2;
+  stroke: var(--accent);
+  stroke-width: 2.2;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
 
 .bwc .bwc-chart-point {
-  stroke: #1976d2;
+  stroke: var(--accent-deep);
   stroke-width: 1;
 }
 
 .bwc .bwc-chart-point-positive {
-  fill: lightgreen;
+  fill: var(--good);
 }
 
 .bwc .bwc-chart-point-negative {
-  fill: tomato;
+  fill: var(--bad);
 }
 
 .bwc .bwc-chart-label {
-  fill: #666;
+  fill: var(--ink-muted);
   font-size: 10px;
+  font-family: var(--font-body);
 }
 
 .bwc .bwc-chart-empty {
-  fill: #888;
+  fill: var(--ink-muted);
   font-size: 11px;
+  font-family: var(--font-body);
 }

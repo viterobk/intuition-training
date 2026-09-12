@@ -1,5 +1,5 @@
 /* eslint-disable import/no-anonymous-default-export */
-import { AppBar, IconButton, Toolbar, Typography } from '@mui/material';
+import { IconButton, Toolbar, Typography } from '@mui/material';
 import Home from '@mui/icons-material/Home';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -27,7 +27,7 @@ export default (props) => {
       showTimer = true,
       showHome = true,
     } = props;
-    const [startTime, _] = useState(new Date())
+    const [startTime] = useState(new Date())
     const [timeString, setTimeString] = useState(getTimeString(startTime))
     checkTimeObj.callback = () => {
       setTimeString(getTimeString(startTime));
@@ -39,19 +39,23 @@ export default (props) => {
     }
     const renderHomeButton = () => {
         return <IconButton
+              className='top-bar-home'
               color='inherit'
               onClick={homeClicked}
+              aria-label='На главную'
           >
             <Home/>
           </IconButton>
     }
     return (
-        <AppBar position="sticky" className='top-bar'>
+        <header className='top-bar'>
             <Toolbar className='toolbar'>
-              <div>{showHome && renderHomeButton()}</div>
-              <Typography variant='h6' noWrap>{text}</Typography>
-              <div>{showTimer && <Typography variant='h6' noWrap>{timeString}</Typography>}</div>
+              <div className='top-bar-side top-bar-side-left'>{showHome && renderHomeButton()}</div>
+              <Typography className='top-bar-title' variant='h6' noWrap>{text}</Typography>
+              <div className='top-bar-side top-bar-side-right'>
+                {showTimer && <div className='top-bar-timer'>{timeString}</div>}
+              </div>
             </Toolbar>
-        </AppBar>
+        </header>
     )
 }
