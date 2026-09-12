@@ -13,7 +13,7 @@ setInterval(() => {
   checkTimeObj.callback();
 }, 500)
 
-const getTimeString = (startTime) => {
+const getTimeString = (startTime: Date) => {
   const totalSeconds = Math.floor(((new Date()).getTime() - startTime.getTime()) / 1000);
   const seconds = totalSeconds % 60
   const minutes = ((totalSeconds - seconds) / 60) % 60;
@@ -26,8 +26,10 @@ export default (props) => {
       text = DEFAULT_HEADER,
       showTimer = true,
       showHome = true,
+      startTime: startTimeProp,
     } = props;
-    const [startTime] = useState(new Date())
+    const [localStartTime] = useState(() => new Date())
+    const startTime = startTimeProp ?? localStartTime
     const [timeString, setTimeString] = useState(getTimeString(startTime))
     checkTimeObj.callback = () => {
       setTimeString(getTimeString(startTime));

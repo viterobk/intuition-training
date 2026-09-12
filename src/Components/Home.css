@@ -80,6 +80,11 @@
   color: #5c5340;
 }
 
+.Home-card.tone-random .Home-card-icon {
+  background: linear-gradient(145deg, #d9e4f0, #b7c9de);
+  color: #35506b;
+}
+
 .Home-card-copy h2 {
   margin: 0;
   font-family: var(--font-display);

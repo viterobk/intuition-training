@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import './Home.css';
 import { observer } from 'mobx-react';
 import TopBar from './TopBar';
+import StyleIcon from '@mui/icons-material/Style';
 import Compare from '@mui/icons-material/Compare';
 import Pin from '@mui/icons-material/Pin';
 import ArrowForward from '@mui/icons-material/ArrowForward';
@@ -21,6 +22,13 @@ const exercises = [
     description: 'Выбирайте числа интуитивно и сужайте поле до верного ответа.',
     icon: Pin,
     tone: 'tone-numbers',
+  },
+  {
+    to: '/random',
+    title: 'Случайная карта',
+    description: 'Тяните карты из колоды одну за другой и наблюдайте за рядом.',
+    icon: StyleIcon,
+    tone: 'tone-random',
   },
 ];
 

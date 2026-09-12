@@ -1,0 +1,340 @@
+.random-cards-body {
+  padding-top: 12px;
+}
+
+.random-cards-stats {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.random-table {
+  --card-w: min(118px, 28vw);
+  --card-h: calc(var(--card-w) * 1.5);
+  --fan-offset: clamp(18px, 6.8vw, 28px);
+  position: relative;
+  min-height: calc(var(--card-h) + 260px);
+  margin: 0 auto;
+  max-width: 560px;
+}
+
+.random-table-fan {
+  position: relative;
+  height: calc(var(--card-h) + 36px);
+  margin: 8px auto 0;
+  width: min(100%, calc(var(--card-w) + 9 * var(--fan-offset) + 36px));
+  overflow: visible;
+}
+
+.random-stack-base {
+  position: absolute;
+  left: 0;
+  top: 24px;
+  width: var(--card-w);
+  height: var(--card-h);
+  pointer-events: none;
+}
+
+.random-stack-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--card-w);
+  height: var(--card-h);
+  border-radius: 12px;
+  background: linear-gradient(145deg, #0f766e, #115e59);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 16px rgba(20, 42, 40, 0.12);
+}
+
+.random-stack-layer-1 {
+  transform: translate(2px, 2px);
+  z-index: 1;
+}
+
+.random-stack-layer-2 {
+  transform: translate(4px, 4px);
+  z-index: 2;
+}
+
+.random-stack-layer-3 {
+  transform: translate(6px, 6px);
+  z-index: 3;
+}
+
+.random-card-slot {
+  position: absolute;
+  top: 24px;
+  width: var(--card-w);
+  height: var(--card-h);
+  transform-origin: center center;
+}
+
+.random-card-slot.is-settled {
+  transition: left 0.45s ease;
+}
+
+.random-card-number {
+  position: absolute;
+  top: -22px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.random-card-flight .random-card-number {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.random-card-flight .random-card-number.is-visible {
+  opacity: 0.75;
+}
+
+.random-card-face {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 14px 28px rgba(20, 42, 40, 0.16);
+  border: 1px solid rgba(20, 42, 40, 0.12);
+}
+
+.random-card-face img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  pointer-events: none;
+}
+
+.random-card-flipper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.42s ease;
+}
+
+.random-card-flight .random-card-back,
+.random-card-flight .random-card-front {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.random-card-flight .random-card-front {
+  transform: rotateY(180deg);
+}
+
+.random-card-flight {
+  left: var(--flight-from-left);
+  top: var(--flight-from-top);
+  perspective: 900px;
+  transition:
+    left 0.52s cubic-bezier(0.22, 0.8, 0.28, 1),
+    top 0.52s cubic-bezier(0.22, 0.8, 0.28, 1);
+  z-index: 80;
+  pointer-events: none;
+}
+
+.random-card-flight.is-flying {
+  left: var(--flight-left);
+  top: var(--flight-top);
+}
+
+.random-card-flight.is-flipping .random-card-flipper {
+  transform: rotateY(180deg);
+}
+
+.random-deck-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 28px;
+  gap: 10px;
+}
+
+.random-draw-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.random-deck-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.random-deck {
+  position: relative;
+  width: var(--card-w);
+  height: var(--card-h);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 12px;
+}
+
+.random-deck:disabled {
+  cursor: default;
+}
+
+.random-deck:not(:disabled):hover {
+  transform: translateY(-2px);
+}
+
+.random-deck:not(:disabled):active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.random-deck-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 24px rgba(20, 42, 40, 0.18);
+}
+
+.random-deck-layer img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.random-deck-label {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 14%;
+  z-index: 6;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: clamp(0.62rem, 2.4vw, 0.74rem);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
+.random-deck.is-busy {
+  opacity: 0.85;
+}
+
+.random-deck.is-empty {
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px dashed var(--border-strong);
+  box-shadow: none;
+}
+
+.random-deck-empty {
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.random-draw-random {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: clamp(56px, 16vw, 72px);
+  height: var(--card-h);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #5faba4;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+
+.random-draw-random:hover:not(:disabled),
+.random-draw-random:focus-visible:not(:disabled) {
+  color: #3d8f88;
+  transform: translateX(3px);
+  outline: none;
+}
+
+.random-draw-random:active:not(:disabled) {
+  transform: translateX(6px);
+  color: var(--accent);
+}
+
+.random-draw-random:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.random-side-arrow {
+  width: 100%;
+  height: auto;
+  max-height: 58%;
+  display: block;
+}
+
+.random-side-caption {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: inherit;
+  opacity: 0.9;
+  max-width: 5.5em;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.random-deck-hint {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.88rem;
+}
+
+.random-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--accent-deep);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.random-reset:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+.random-reset:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+@media (max-width: 420px) {
+  .random-table {
+    --card-w: min(96px, 26vw);
+  }
+}
