@@ -75,6 +75,7 @@ export default function RandomCards() {
   const [drawn, setDrawn] = useState<DrawnCard[]>([]);
   const [flight, setFlight] = useState<Flight | null>(null);
   const [flyActive, setFlyActive] = useState(false);
+  const [deckElevated, setDeckElevated] = useState(false);
   const [fanOffset, setFanOffset] = useState(28);
   const [deckOrigin, setDeckOrigin] = useState({ left: 0, top: 0 });
 
@@ -125,7 +126,7 @@ export default function RandomCards() {
     timersRef.current.push(id);
   };
 
-  const drawCardAt = (index: number) => {
+  const drawCardAt = (index: number, elevateDeck = false) => {
     if (isBusy || deck.length === 0 || index < 0 || index >= deck.length) {
       return;
     }
@@ -140,6 +141,7 @@ export default function RandomCards() {
     };
 
     setDeck(rest);
+    setDeckElevated(elevateDeck);
     setFlight({ card: drawnCard, phase: 'fly' });
     setFlyActive(false);
 
@@ -155,6 +157,7 @@ export default function RandomCards() {
       setDrawn((prev) => [...prev, drawnCard]);
       setFlight(null);
       setFlyActive(false);
+      setDeckElevated(false);
     }, FLY_MS + FLIP_MS);
   };
 
@@ -168,7 +171,7 @@ export default function RandomCards() {
     }
     const elapsedMs = Date.now() - sessionStart.getTime();
     const index = elapsedMs % deck.length;
-    drawCardAt(index);
+    drawCardAt(index, true);
   };
 
   const resetDeck = () => {
@@ -180,6 +183,7 @@ export default function RandomCards() {
     setDrawn([]);
     setFlight(null);
     setFlyActive(false);
+    setDeckElevated(false);
   };
 
   const flightLeft = flightSlotIndex * fanOffset;
@@ -269,7 +273,7 @@ export default function RandomCards() {
                 <button
                   ref={deckRef}
                   type='button'
-                  className={`random-deck ${remaining === 0 ? 'is-empty' : ''} ${isBusy ? 'is-busy' : ''}`}
+                  className={`random-deck ${remaining === 0 ? 'is-empty' : ''} ${isBusy ? 'is-busy' : ''} ${deckElevated ? 'is-elevated' : ''}`}
                   onClick={drawTopCard}
                   disabled={isBusy || remaining === 0}
                   aria-label={remaining === 0 ? 'Колода пуста' : 'Взять сверху'}

@@ -191,6 +191,10 @@
   border-radius: 12px;
 }
 
+.random-deck.is-elevated {
+  z-index: 500;
+}
+
 .random-deck:disabled {
   cursor: default;
 }
@@ -234,7 +238,7 @@
 }
 
 .random-deck.is-busy {
-  opacity: 0.85;
+  pointer-events: none;
 }
 
 .random-deck.is-empty {
