@@ -10,7 +10,20 @@ const SHELL_URLS = [
   './logo192.png',
   './logo512.png',
   './asset-manifest.json',
+  './cards/back.svg',
 ];
+
+const CARD_FILES = [
+  '6_c','6_d','6_h','6_s',
+  '7_c','7_d','7_h','7_s',
+  '8_c','8_d','8_h','8_s',
+  '9_c','9_d','9_h','9_s',
+  '10_c','10_d','10_h','10_s',
+  'j_c','j_d','j_h','j_s',
+  'q_c','q_d','q_h','q_s',
+  'k_c','k_d','k_h','k_s',
+  'a_c','a_d','a_h','a_s',
+].map((name) => `./cards/${name}.svg`);
 
 function normalizeUrl(path) {
   if (!path) {
@@ -26,7 +39,7 @@ function normalizeUrl(path) {
 }
 
 function getUrlsFromManifest(manifest) {
-  const urls = new Set(SHELL_URLS);
+  const urls = new Set([...SHELL_URLS, ...CARD_FILES]);
 
   manifest.entrypoints.forEach((entry) => {
     const url = normalizeUrl(entry);
