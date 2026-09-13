@@ -5,6 +5,7 @@ import { observer } from 'mobx-react';
 import StyleIcon from '@mui/icons-material/Style';
 import Compare from '@mui/icons-material/Compare';
 import Pin from '@mui/icons-material/Pin';
+import LooksTwo from '@mui/icons-material/LooksTwo';
 import ArrowForward from '@mui/icons-material/ArrowForward';
 
 const exercises = [
@@ -21,6 +22,13 @@ const exercises = [
     description: 'Выбирайте числа интуитивно и сужайте поле до верного ответа.',
     icon: Pin,
     tone: 'tone-numbers',
+  },
+  {
+    to: '/twodigit',
+    title: 'Двузначные числа',
+    description: 'Угадайте шесть скрытых чисел — совпадение или близость ±2.',
+    icon: LooksTwo,
+    tone: 'tone-twodigit',
   },
   {
     to: '/random',
