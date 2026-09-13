@@ -34,7 +34,7 @@ const exercises = [
   {
     to: '/dice',
     title: 'Игральные кубики',
-    description: 'Выберите число кубиков и бросьте.',
+    description: 'Бросайте кубики по одному — до шести на столе.',
     icon: Casino,
     tone: 'tone-dice',
   },
