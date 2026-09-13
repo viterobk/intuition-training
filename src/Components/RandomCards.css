@@ -219,6 +219,10 @@
   z-index: 60;
 }
 
+.random-deck.is-elevated {
+  z-index: 500;
+}
+
 .random-deck.is-shuffling .random-deck-layer {
   animation: deck-riffle 0.9s ease-in-out;
   animation-delay: calc(var(--i) * 45ms);
