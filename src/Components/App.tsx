@@ -10,6 +10,7 @@ import BWCards from './BWCards';
 import Numbers from './Numbers';
 import RandomCards from './RandomCards';
 import TwoDigitNumbers from './TwoDigitNumbers';
+import Dice from './Dice';
 
 export default () => {
   return (
@@ -20,6 +21,7 @@ export default () => {
           <Route path='/bwc' element={<BWCards/>} />
           <Route path='/num' element={<Numbers/>} />
           <Route path='/twodigit' element={<TwoDigitNumbers/>} />
+          <Route path='/dice' element={<Dice/>} />
           <Route path='/random' element={<RandomCards/>} />
         </Routes>
       </Router>

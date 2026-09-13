@@ -85,6 +85,11 @@
   color: #5a4f3d;
 }
 
+.Home-card.tone-dice .Home-card-icon {
+  background: linear-gradient(145deg, #d8ebe4, #b5d4c8);
+  color: #2d6a5a;
+}
+
 .Home-card.tone-random .Home-card-icon {
   background: linear-gradient(145deg, #d9e4f0, #b7c9de);
   color: #35506b;

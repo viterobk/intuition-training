@@ -1,0 +1,185 @@
+.dice-body {
+  padding-top: 18px;
+}
+
+.dice-lead {
+  margin: 0 auto 18px;
+  max-width: 36ch;
+  color: var(--ink-soft);
+  font-size: 1rem;
+}
+
+.dice-table {
+  position: relative;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.dice-felt {
+  position: relative;
+  height: clamp(240px, 52vw, 300px);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(20, 42, 40, 0.14);
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 40%, rgba(255, 255, 255, 0.12), transparent 60%),
+    linear-gradient(165deg, #1f6b5c 0%, #155447 48%, #0f463c 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -18px 40px rgba(0, 0, 0, 0.18),
+    var(--shadow);
+  overflow: hidden;
+}
+
+.dice-felt::before {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border-radius: 14px;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+}
+
+.dice-table.is-rolling .dice-felt {
+  animation: dice-table-shake 0.18s ease-in-out infinite;
+}
+
+@keyframes dice-table-shake {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(1px);
+  }
+}
+
+.die {
+  --die-size: clamp(52px, 14vw, 64px);
+  position: absolute;
+  width: var(--die-size);
+  height: var(--die-size);
+  transition:
+    left 0.55s cubic-bezier(0.22, 0.8, 0.28, 1),
+    top 0.55s cubic-bezier(0.22, 0.8, 0.28, 1),
+    transform 0.55s cubic-bezier(0.22, 0.8, 0.28, 1);
+  will-change: left, top, transform;
+}
+
+.die.is-tumbling {
+  transition-duration: 0.08s;
+  animation: die-tumble 0.35s linear infinite;
+}
+
+.die.is-settled .die-face {
+  animation: die-land 0.45s cubic-bezier(0.22, 0.8, 0.28, 1) both;
+}
+
+@keyframes die-tumble {
+  0% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.08);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
+@keyframes die-land {
+  0% {
+    transform: scale(1.12);
+  }
+  70% {
+    transform: scale(0.96);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.die-face {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 100%;
+  height: 100%;
+  padding: 10%;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #fbf7f1 0%, #efe6da 55%, #e4d8c8 100%);
+  border: 1px solid rgba(20, 42, 40, 0.16);
+  box-shadow:
+    0 10px 20px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.die-pip {
+  width: 46%;
+  height: 46%;
+  margin: auto;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.die-pip.is-on {
+  background: radial-gradient(circle at 35% 30%, #3a3530, #1c1916 70%);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15);
+}
+
+.dice-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.dice-roll {
+  border-radius: 14px !important;
+  padding: 8px 28px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  background: var(--accent) !important;
+  box-shadow: none !important;
+}
+
+.dice-roll:disabled {
+  opacity: 0.55 !important;
+}
+
+.dice-count-group {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 4px;
+  box-shadow: var(--shadow);
+}
+
+.dice-count-group .MuiToggleButton-root {
+  min-width: 42px;
+  height: 40px;
+  margin: 0 2px !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  color: var(--ink-soft) !important;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  text-transform: none;
+}
+
+.dice-count-group .MuiToggleButton-root.Mui-selected {
+  background: var(--accent-soft) !important;
+  color: var(--accent-deep) !important;
+}
+
+.dice-count-group .MuiToggleButton-root:hover {
+  background: rgba(15, 118, 110, 0.08) !important;
+}
+
+@media (max-width: 380px) {
+  .dice-count-group .MuiToggleButton-root {
+    min-width: 36px;
+    height: 36px;
+  }
+}

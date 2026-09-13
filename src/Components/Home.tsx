@@ -6,6 +6,7 @@ import StyleIcon from '@mui/icons-material/Style';
 import Compare from '@mui/icons-material/Compare';
 import Pin from '@mui/icons-material/Pin';
 import LooksTwo from '@mui/icons-material/LooksTwo';
+import Casino from '@mui/icons-material/Casino';
 import ArrowForward from '@mui/icons-material/ArrowForward';
 
 const exercises = [
@@ -26,9 +27,16 @@ const exercises = [
   {
     to: '/twodigit',
     title: 'Двузначные числа',
-    description: 'Угадайте шесть скрытых чисел — совпадение или близость ±2.',
+    description: 'Определите шесть скрытых чисел — совпадение или близость ±2.',
     icon: LooksTwo,
     tone: 'tone-twodigit',
+  },
+  {
+    to: '/dice',
+    title: 'Игральные кубики',
+    description: 'Выберите число кубиков и бросьте.',
+    icon: Casino,
+    tone: 'tone-dice',
   },
   {
     to: '/random',
