@@ -1,10 +1,11 @@
 /* eslint-disable import/no-anonymous-default-export */
 import { useEffect, useRef, useState } from 'react';
-import { Button } from '@mui/material';
+import { Button, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import TopBar from './TopBar';
 import './Dice.css';
 
 const ROLL_MS = 1100;
+const MIN_DICE = 1;
 const MAX_DICE = 6;
 /** Доля размера кубика от ширины/высоты поля (с запасом под поворот). */
 const DIE_W = 0.18;
@@ -44,21 +45,13 @@ function timerSeed(startTime: Date): number {
   return mixed || 1;
 }
 
-const elapsedMs = (startTime: Date) => Date.now() - startTime.getTime();
-
-/** Значение грани = остаток мс таймера от деления на 6 (0 → 6). */
-const faceFromElapsed = (ms: number): DieValue => {
-  const rem = ms % 6;
-  return (rem === 0 ? 6 : rem) as DieValue;
-};
-
-/** Для анимации кручения — просто смена граней. */
-const tumbleFace = (random: Rng): DieValue =>
+const rollValue = (random: Rng): DieValue =>
   ((Math.floor(random() * 6) + 1) as DieValue);
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
 
+/** Половина AABB повёрнутого квадрата в долях поля. */
 const halfExtents = (rotDeg: number) => {
   let r = ((rotDeg % 90) + 90) % 90;
   if (r > 45) {
@@ -134,31 +127,34 @@ const separatePoses = (poses: Pose[], random: Rng): Pose[] => {
   return next;
 };
 
-/** Новая поза рядом с уже лежащими, без пересечений. */
-const placeAmong = (occupied: Pose[], random: Rng): Pose => {
-  for (let tryIndex = 0; tryIndex < PACK_TRIES; tryIndex += 1) {
-    const candidate = randomPose(random);
-    if (occupied.every((pose) => !overlaps(pose, candidate))) {
-      return candidate;
+const packPoses = (count: number, random: Rng): Pose[] => {
+  const poses: Pose[] = [];
+  for (let i = 0; i < count; i += 1) {
+    let placed: Pose | null = null;
+    for (let tryIndex = 0; tryIndex < PACK_TRIES; tryIndex += 1) {
+      const candidate = randomPose(random);
+      if (poses.every((pose) => !overlaps(pose, candidate))) {
+        placed = candidate;
+        break;
+      }
     }
+    poses.push(placed || randomPose(random));
   }
-  const packed = separatePoses([...occupied, randomPose(random)], random);
-  return packed[packed.length - 1];
+  return separatePoses(poses, random);
 };
 
-const poseFromDie = (die: DieState): Pose => ({
-  x: die.x / 100,
-  y: die.y / 100,
-  rot: die.rot,
-});
-
-const makeDie = (id: number, pose: Pose, value: DieValue): DieState => ({
-  id,
-  value,
-  x: pose.x * 100,
-  y: pose.y * 100,
-  rot: pose.rot,
-});
+const createDice = (count: number, rolling: boolean, random: Rng): DieState[] => {
+  const poses = rolling
+    ? separatePoses(Array.from({ length: count }, () => randomPose(random)), random)
+    : packPoses(count, random);
+  return poses.map((pose, index) => ({
+    id: index,
+    value: rollValue(random),
+    x: pose.x * 100,
+    y: pose.y * 100,
+    rot: pose.rot,
+  }));
+};
 
 const PIP_MAP: Record<DieValue, number[]> = {
   1: [5],
@@ -187,21 +183,14 @@ export default function Dice() {
   document.title = 'Игральные кубики';
 
   const [sessionStart] = useState(() => new Date());
-  const nextIdRef = useRef(1);
-  const [dice, setDice] = useState<DieState[]>(() => {
-    const start = new Date();
-    const ms = Date.now() - start.getTime();
-    const random = createRng(timerSeed(start));
-    return [makeDie(0, randomPose(random), faceFromElapsed(ms))];
-  });
-  const [rollingId, setRollingId] = useState<number | null>(null);
+  const [count, setCount] = useState(1);
+  const [dice, setDice] = useState<DieState[]>(() =>
+    createDice(1, false, createRng(timerSeed(new Date())))
+  );
+  const [rolling, setRolling] = useState(false);
   const timersRef = useRef<number[]>([]);
   const tumbleRef = useRef<number | null>(null);
   const tumbleRngRef = useRef<Rng | null>(null);
-  const diceRef = useRef(dice);
-  diceRef.current = dice;
-
-  const isBusy = rollingId !== null;
 
   useEffect(() => {
     const timers = timersRef.current;
@@ -218,89 +207,59 @@ export default function Dice() {
     timersRef.current.push(id);
   };
 
-  const clearRollTimers = () => {
+  const roll = () => {
+    if (rolling) {
+      return;
+    }
+
+    const seed = timerSeed(sessionStart);
+    const finalDice = createDice(count, false, createRng(seed));
+    const tumbleRandom = createRng(seed ^ 0xa5a5a5a5);
+    tumbleRngRef.current = tumbleRandom;
+
+    setRolling(true);
+    setDice(createDice(count, true, tumbleRandom));
+
     if (tumbleRef.current !== null) {
       window.clearInterval(tumbleRef.current);
-      tumbleRef.current = null;
     }
-  };
-
-  const animateDie = (
-    dieId: number,
-    finalDie: DieState,
-    keepOthers: DieState[],
-    tumbleRandom: Rng
-  ) => {
-    clearRollTimers();
-    tumbleRngRef.current = tumbleRandom;
-    setRollingId(dieId);
-
-    const startPose = randomPose(tumbleRandom);
-    setDice([
-      ...keepOthers,
-      makeDie(dieId, startPose, finalDie.value),
-    ]);
-
     tumbleRef.current = window.setInterval(() => {
       const random = tumbleRngRef.current;
       if (!random) {
         return;
       }
-      setDice((prev) =>
-        prev.map((die) => {
-          if (die.id !== dieId) {
-            return die;
-          }
-          const rot = die.rot + 25 + random() * 50;
-          const box = boundsFor(rot);
-          return {
-            ...die,
-            value: tumbleFace(random),
-            x: clamp(die.x / 100 + (random() - 0.5) * 0.1, box.minX, box.maxX) * 100,
-            y: clamp(die.y / 100 + (random() - 0.5) * 0.1, box.minY, box.maxY) * 100,
-            rot,
-          };
-        })
-      );
+      setDice((prev) => {
+        const poses = separatePoses(
+          prev.map((die) => {
+            const rot = die.rot + 25 + random() * 50;
+            const box = boundsFor(rot);
+            return {
+              x: clamp(die.x / 100 + (random() - 0.5) * 0.08, box.minX, box.maxX),
+              y: clamp(die.y / 100 + (random() - 0.5) * 0.08, box.minY, box.maxY),
+              rot,
+            };
+          }),
+          random
+        );
+        return prev.map((die, index) => ({
+          ...die,
+          value: rollValue(random),
+          x: poses[index].x * 100,
+          y: poses[index].y * 100,
+          rot: poses[index].rot,
+        }));
+      });
     }, 70);
 
     queueTimeout(() => {
-      clearRollTimers();
+      if (tumbleRef.current !== null) {
+        window.clearInterval(tumbleRef.current);
+        tumbleRef.current = null;
+      }
       tumbleRngRef.current = null;
-      setDice([...keepOthers, finalDie]);
-      setRollingId(null);
+      setDice(finalDice);
+      setRolling(false);
     }, ROLL_MS);
-  };
-
-  const rollAgain = () => {
-    if (isBusy) {
-      return;
-    }
-    const ms = elapsedMs(sessionStart);
-    const value = faceFromElapsed(ms);
-    const seed = timerSeed(sessionStart);
-    const random = createRng(seed);
-    const id = nextIdRef.current;
-    nextIdRef.current += 1;
-    const finalDie = makeDie(id, randomPose(random), value);
-    animateDie(id, finalDie, [], createRng(seed ^ 0xa5a5a5a5));
-  };
-
-  const rollAnother = () => {
-    if (isBusy || diceRef.current.length >= MAX_DICE) {
-      return;
-    }
-    const settled = diceRef.current;
-    const ms = elapsedMs(sessionStart);
-    const value = faceFromElapsed(ms);
-    const seed = timerSeed(sessionStart);
-    const random = createRng(seed);
-    const id = nextIdRef.current;
-    nextIdRef.current += 1;
-    const occupied = settled.map(poseFromDie);
-    const finalPose = placeAmong(occupied, random);
-    const finalDie = makeDie(id, finalPose, value);
-    animateDie(id, finalDie, settled, createRng(seed ^ 0xa5a5a5a5));
   };
 
   return (
@@ -308,23 +267,21 @@ export default function Dice() {
       <TopBar text='Игральные кубики' startTime={sessionStart} />
       <div className='dice-body page-section'>
         <p className='dice-lead'>
-          Бросайте кубики по одному — до шести на столе.
+          Выберите число кубиков и бросьте.
         </p>
 
-        <div className={`dice-table ${isBusy ? 'is-rolling' : ''}`} aria-live='polite'>
+        <div className={`dice-table ${rolling ? 'is-rolling' : ''}`} aria-live='polite'>
           <div className='dice-felt'>
             {dice.map((die, index) => (
               <div
                 key={die.id}
-                className={`die ${
-                  rollingId === die.id ? 'is-tumbling' : 'is-settled'
-                }`}
+                className={`die ${rolling ? 'is-tumbling' : 'is-settled'}`}
                 style={{
                   left: `${die.x}%`,
                   top: `${die.y}%`,
                   transform: `translate(-50%, -50%) rotate(${die.rot}deg)`,
-                  transitionDelay: rollingId === die.id ? '0ms' : `${index * 30}ms`,
-                  zIndex: rollingId === die.id ? 20 : index + 1,
+                  transitionDelay: rolling ? '0ms' : `${index * 45}ms`,
+                  zIndex: index + 1,
                 }}
                 aria-label={`Кубик ${die.value}`}
               >
@@ -338,19 +295,30 @@ export default function Dice() {
           <Button
             className='dice-roll'
             variant='contained'
-            onClick={rollAgain}
-            disabled={isBusy}
+            onClick={roll}
+            disabled={rolling}
           >
-            Бросить заново
+            {rolling ? 'Бросаем…' : 'Бросить'}
           </Button>
-          <Button
-            className='dice-roll-another'
-            variant='outlined'
-            onClick={rollAnother}
-            disabled={isBusy || dice.length >= MAX_DICE}
+
+          <ToggleButtonGroup
+            className='dice-count-group'
+            value={count}
+            exclusive
+            onChange={(_, value) => {
+              if (value != null && !rolling) {
+                setCount(value);
+                setDice(createDice(value, false, createRng(timerSeed(sessionStart))));
+              }
+            }}
+            aria-label='Количество кубиков'
           >
-            Бросить ещё один кубик
-          </Button>
+            {Array.from({ length: MAX_DICE - MIN_DICE + 1 }, (_, i) => i + MIN_DICE).map((n) => (
+              <ToggleButton key={n} value={n} disabled={rolling} aria-label={`${n} кубиков`}>
+                {n}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
         </div>
       </div>
     </div>
