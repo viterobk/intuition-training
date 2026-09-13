@@ -1,113 +1,386 @@
+.bwc-body {
+  padding-top: 12px;
+}
+
 .bwc-stats {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 18px;
+  margin-bottom: 8px;
 }
 
-.bwc-progress {
-  margin-top: 14px;
-}
-
-.bwc .MuiLinearProgress-root {
-  height: 8px !important;
-  border-radius: 999px;
-  overflow: hidden;
-  background-color: rgba(20, 42, 40, 0.08) !important;
-}
-
-.bwc .MuiLinearProgress-barColorPrimary {
-  background: linear-gradient(90deg, #2f9e6c, #0f766e) !important;
-  border-radius: 999px;
-}
-
-.bwc-container-center {
-  margin-top: 18px;
-}
-
-.bwc .bwc-result {
+.bwc-table {
+  --card-w: min(108px, 26vw);
+  --card-h: calc(var(--card-w) * 1.5);
   position: relative;
-  width: min(280px, 72vw);
-  aspect-ratio: 1;
+  max-width: 560px;
   margin: 0 auto;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-lg);
-  background:
-    linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(230, 240, 238, 0.85));
-  box-shadow: var(--shadow);
-  display: grid;
-  place-items: center;
-  transition: background 0.35s ease, transform 0.35s ease, box-shadow 0.35s ease;
+  min-height: calc(var(--card-h) * 2 + 180px);
 }
 
-.bwc .bwc-result.is-waiting {
-  animation: soft-pulse 2.8s ease-in-out infinite;
-}
-
-.bwc .bwc-result.is-revealed {
-  animation: none;
-  transform: scale(1.02);
-}
-
-.bwc .bwc-result.bwc-result-black {
-  background: #141414;
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
-}
-
-.bwc .bwc-result.bwc-result-white {
-  background: #ffffff;
-  box-shadow: 0 18px 36px rgba(20, 42, 40, 0.12);
-}
-
-.bwc-result-hint {
-  font-family: var(--font-display);
-  font-size: 3.5rem;
-  color: var(--ink-muted);
-  opacity: 0.55;
-}
-
-.bwc .control-buttons {
+.bwc-zones {
   display: flex;
   justify-content: center;
-  gap: 16px;
-  margin-top: 22px;
+  align-items: flex-start;
+  gap: 18px;
+  position: relative;
+  margin-top: 8px;
 }
 
-.bwc .control-buttons .bwc-button {
-  width: 120px;
-  height: 72px;
-  border: 1px solid var(--border-strong);
+.bwc-zone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: calc(var(--card-w) + 28px);
+  min-height: calc(var(--card-h) + 52px);
+  padding: 10px 8px 12px;
   border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-  box-shadow: var(--shadow);
+  border: 1px dashed var(--border);
+  background: rgba(255, 255, 255, 0.35);
 }
 
-.bwc .control-buttons .bwc-button:hover {
-  transform: translateY(-2px);
+.bwc-zone-plus {
+  border-color: rgba(47, 158, 108, 0.35);
+  background: rgba(216, 243, 229, 0.35);
 }
 
-.bwc .control-buttons .bwc-button:active {
-  transform: translateY(1px) scale(0.98);
+.bwc-zone-minus {
+  border-color: rgba(214, 90, 74, 0.3);
+  background: rgba(253, 228, 224, 0.3);
 }
 
-.bwc .control-buttons .bwc-button.bwc-button-black {
-  background: #141414;
+.bwc-zone-label {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink-soft);
 }
 
-.bwc .control-buttons .bwc-button.bwc-button-white {
-  background: #ffffff;
+.bwc-zone-plus .bwc-zone-label {
+  color: var(--good);
 }
 
-.bwc-hint {
-  margin: 14px 0 0;
+.bwc-zone-minus .bwc-zone-label {
+  color: var(--bad);
+}
+
+.bwc-zone-count {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--ink-muted);
-  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.bwc-zone-caption {
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+  opacity: 0.65;
+}
+
+.bwc-zone-stack {
+  position: relative;
+  width: var(--card-w);
+  height: var(--card-h);
+  perspective: 900px;
+}
+
+.bwc-zone-under {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(20, 42, 40, 0.12);
+  border: 1px solid rgba(20, 42, 40, 0.14);
+  pointer-events: none;
+}
+
+.bwc-zone-under img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bwc-mini-flip {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  transform-style: preserve-3d;
+  transition: transform 0.42s ease;
+}
+
+.bwc-mini-flip.is-face-up {
+  transform: rotateY(180deg);
+}
+
+.bwc-mini-flip.is-face-down {
+  transform: rotateY(0deg);
+}
+
+.bwc-mini-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow: 0 12px 24px rgba(20, 42, 40, 0.14);
+  border: 1px solid rgba(20, 42, 40, 0.16);
+}
+
+.bwc-mini-back img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bwc-mini-front {
+  display: grid;
+  place-items: center;
+  transform: rotateY(180deg);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.bwc-mini-card-black {
+  background: #2f2b28;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.bwc-mini-card-white {
+  background: #f2ebe3;
+  color: rgba(20, 42, 40, 0.35);
+}
+
+.bwc-reveal {
+  position: absolute;
+  left: 50%;
+  top: 46px;
+  width: var(--card-w);
+  height: var(--card-h);
+  margin-left: calc(var(--card-w) / -2);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.bwc-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.bwc-guess {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: clamp(56px, 16vw, 72px);
+  height: var(--card-h);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+
+.bwc-guess--white {
+  color: #f2ebe3;
+}
+
+.bwc-guess--white .bwc-guess-caption {
+  color: var(--ink-soft);
+}
+
+.bwc-guess--white .bwc-guess-arrow {
+  filter: drop-shadow(0 0 1px rgba(47, 43, 40, 0.5)) drop-shadow(0 1px 2px rgba(20, 42, 40, 0.12));
+}
+
+.bwc-guess--black {
+  color: #2f2b28;
+}
+
+.bwc-guess--left:hover:not(:disabled),
+.bwc-guess--left:focus-visible:not(:disabled) {
+  transform: translateX(-3px);
+  outline: none;
+}
+
+.bwc-guess--left:active:not(:disabled) {
+  transform: translateX(-6px);
+}
+
+.bwc-guess--right:hover:not(:disabled),
+.bwc-guess--right:focus-visible:not(:disabled) {
+  transform: translateX(3px);
+  outline: none;
+}
+
+.bwc-guess--right:active:not(:disabled) {
+  transform: translateX(6px);
+}
+
+.bwc-guess--white:hover:not(:disabled),
+.bwc-guess--white:focus-visible:not(:disabled) {
+  color: #faf6f0;
+}
+
+.bwc-guess--black:hover:not(:disabled),
+.bwc-guess--black:focus-visible:not(:disabled) {
+  color: #3d3834;
+}
+
+.bwc-guess:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.bwc-guess-arrow {
+  width: 100%;
+  height: auto;
+  max-height: 58%;
+  display: block;
+}
+
+.bwc-guess-arrow--mirror {
+  transform: scaleX(-1);
+}
+
+.bwc-guess-caption {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: inherit;
+  opacity: 0.9;
+  max-width: 5.5em;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.bwc-deck {
+  position: relative;
+  width: var(--card-w);
+  height: var(--card-h);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 12px;
+}
+
+.bwc-deck.is-busy {
+  pointer-events: none;
+}
+
+.bwc-deck-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 24px rgba(20, 42, 40, 0.18);
+}
+
+.bwc-deck-layer img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bwc-flight {
+  position: absolute;
+  left: var(--from-left);
+  top: var(--from-top);
+  width: var(--card-w);
+  height: var(--card-h);
+  perspective: 900px;
+  z-index: 80;
+  pointer-events: none;
+  transition:
+    left 0.52s cubic-bezier(0.22, 0.8, 0.28, 1),
+    top 0.52s cubic-bezier(0.22, 0.8, 0.28, 1);
+}
+
+.bwc-flight.is-active {
+  left: var(--to-left);
+  top: var(--to-top);
+}
+
+.bwc-flight.is-settling {
+  transition:
+    left 0.52s cubic-bezier(0.22, 0.8, 0.28, 1),
+    top 0.52s cubic-bezier(0.22, 0.8, 0.28, 1);
+}
+
+.bwc-flight-flipper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.42s ease;
+}
+
+.bwc-flight.is-flipped .bwc-flight-flipper {
+  transform: rotateY(180deg);
+}
+
+/* Во время сдвига в зону переворот уже завершён — не анимируем снова */
+.bwc-flight.is-settling .bwc-flight-flipper {
+  transition: none;
+}
+
+.bwc-flight-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow: 0 14px 28px rgba(20, 42, 40, 0.16);
+  border: 1px solid rgba(20, 42, 40, 0.12);
+}
+
+.bwc-flight-back img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bwc-flight-front {
+  transform: rotateY(180deg);
+}
+
+.bwc-flight-front-black {
+  background: #2f2b28;
+}
+
+.bwc-flight-front-white {
+  background: #f2ebe3;
+}
+
+.bwc-chart-toggle {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.bwc-chart-toggle .MuiFormControlLabel-label {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--ink-soft);
 }
 
 .bwc .bwc-chart {
-  margin: 24px auto 0;
+  margin: 12px auto 0;
   max-width: 420px;
   padding: 14px 14px 10px;
   text-align: left;
@@ -130,7 +403,6 @@
   height: auto;
   background: transparent;
   border: none;
-  border-radius: 0;
 }
 
 .bwc .bwc-chart-zero {
@@ -176,4 +448,14 @@
   fill: var(--ink-muted);
   font-size: 11px;
   font-family: var(--font-body);
+}
+
+@media (max-width: 420px) {
+  .bwc-table {
+    --card-w: min(88px, 24vw);
+  }
+
+  .bwc-controls {
+    gap: 10px;
+  }
 }
