@@ -1,64 +1,56 @@
 .install-pwa {
-  flex: 0 0 auto;
-  margin-left: auto;
+  width: 100%;
+  border-bottom: 1px solid rgba(15, 118, 110, 0.14);
+  background: rgba(204, 251, 241, 0.45);
 }
 
 .install-pwa-button {
-  display: inline-flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  gap: 6px;
-  max-width: 15em;
-  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  width: 100%;
+  padding: 7px var(--space);
   border: 0;
   background: transparent;
-  color: var(--accent);
+  color: var(--accent-deep);
   font-family: var(--font-body);
-  text-align: right;
   cursor: pointer;
-  transition: color 0.18s ease, opacity 0.18s ease;
+  transition: background 0.18s ease, opacity 0.18s ease;
 }
 
 .install-pwa-button:hover:not(:disabled),
 .install-pwa-button:focus-visible:not(:disabled) {
-  color: var(--accent-deep);
+  background: rgba(204, 251, 241, 0.85);
   outline: none;
 }
 
 .install-pwa-button:disabled {
-  opacity: 0.55;
+  opacity: 0.6;
   cursor: default;
 }
 
 .install-pwa-icon {
-  margin-top: 0.12em;
   font-size: 0.95rem;
   flex-shrink: 0;
 }
 
-.install-pwa-copy {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 1px;
-  line-height: 1.2;
-}
-
 .install-pwa-title {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.01em;
 }
 
-.install-pwa-hint {
-  font-size: 0.65rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  color: var(--ink-muted);
-  opacity: 0.9;
+.install-pwa-sep {
+  color: var(--accent);
+  opacity: 0.55;
+  font-size: 0.75rem;
+  line-height: 1;
 }
 
-.install-pwa-button:hover:not(:disabled) .install-pwa-hint,
-.install-pwa-button:focus-visible:not(:disabled) .install-pwa-hint {
+.install-pwa-hint {
+  font-size: 0.72rem;
+  font-weight: 500;
   color: var(--ink-soft);
 }

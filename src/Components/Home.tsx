@@ -53,11 +53,9 @@ class Home extends Component {
     document.title = 'Тренировка интуиции';
     return (
       <div className='Home page'>
+        <InstallPwaButton />
         <section className='Home-hero page-section'>
-          <div className='Home-hero-top'>
-            <p className='Home-kicker'>Практика внимания</p>
-            <InstallPwaButton />
-          </div>
+          <p className='Home-kicker'>Практика внимания</p>
           <h1 className='Home-brand'>Тренировка интуиции</h1>
           <p className='Home-lead'>
             Короткие упражнения, чтобы замечать внутренние сигналы и проверять их в деле.

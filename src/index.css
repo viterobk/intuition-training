@@ -2,6 +2,8 @@
   --bg-0: #edf3f2;
   --bg-1: #dce8e6;
   --bg-2: #c5d9d6;
+  --bg-outer-0: #b7c9c6;
+  --bg-outer-1: #9eb5b1;
   --ink: #142a28;
   --ink-soft: #4a5c5a;
   --ink-muted: #6d7f7c;
@@ -46,10 +48,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background:
-    radial-gradient(ellipse 80% 50% at 10% -10%, rgba(15, 118, 110, 0.16), transparent 55%),
-    radial-gradient(ellipse 70% 45% at 100% 0%, rgba(56, 120, 140, 0.14), transparent 50%),
-    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(180, 150, 110, 0.12), transparent 55%),
-    linear-gradient(165deg, var(--bg-0) 0%, var(--bg-1) 48%, var(--bg-2) 100%);
+    radial-gradient(ellipse 90% 60% at 50% -20%, rgba(15, 118, 110, 0.1), transparent 55%),
+    linear-gradient(180deg, var(--bg-outer-0) 0%, var(--bg-outer-1) 100%);
   background-attachment: fixed;
 }
 

@@ -11,6 +11,7 @@ import Numbers from './Numbers';
 import RandomCards from './RandomCards';
 import TwoDigitNumbers from './TwoDigitNumbers';
 import Dice from './Dice';
+import '../pwaInstall';
 
 export default () => {
   return (
