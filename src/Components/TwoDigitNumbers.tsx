@@ -6,6 +6,8 @@ import './TwoDigitNumbers.css';
 
 const SLOT_COUNT = 6;
 const TOLERANCE = 2;
+const FLIP_MS = 550;
+const FLIP_STAGGER_MS = 250;
 const cardBackUrl = `${process.env.PUBLIC_URL}/cards/back.svg`;
 
 type GuessSlot = string; // '' | '1' | '12'
@@ -83,9 +85,11 @@ export default function TwoDigitNumbers() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [flipActive, setFlipActive] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const guessesRef = useRef(guesses);
   const activeIndexRef = useRef(activeIndex);
   const revealedRef = useRef(revealed);
+  const timersRef = useRef<number[]>([]);
 
   const syncGuesses = (next: GuessSlot[]) => {
     guessesRef.current = next;
@@ -95,6 +99,18 @@ export default function TwoDigitNumbers() {
   const syncActiveIndex = (index: number) => {
     activeIndexRef.current = index;
     setActiveIndex(index);
+  };
+
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => {
+      timers.forEach((id) => window.clearTimeout(id));
+    };
+  }, []);
+
+  const queueTimeout = (fn: () => void, delay: number) => {
+    const id = window.setTimeout(fn, delay);
+    timersRef.current.push(id);
   };
 
   const appendDigit = (digit: string) => {
@@ -159,13 +175,22 @@ export default function TwoDigitNumbers() {
   };
 
   const reset = () => {
-    const cleared = emptyGuesses();
-    setTargets(generateTargets());
-    syncGuesses(cleared);
-    syncActiveIndex(0);
-    revealedRef.current = false;
-    setRevealed(false);
+    if (!revealedRef.current || resetting) {
+      return;
+    }
+    setResetting(true);
+    // Сначала переворачиваем рубашкой вверх, числа пока старые
     setFlipActive(false);
+
+    queueTimeout(() => {
+      const cleared = emptyGuesses();
+      setTargets(generateTargets());
+      syncGuesses(cleared);
+      syncActiveIndex(0);
+      revealedRef.current = false;
+      setRevealed(false);
+      setResetting(false);
+    }, FLIP_MS + FLIP_STAGGER_MS);
   };
 
   const actionsRef = useRef({ check, reset });
@@ -378,7 +403,12 @@ export default function TwoDigitNumbers() {
               Проверить
             </Button>
           ) : (
-            <Button className='tdn-reset' variant='outlined' onClick={reset}>
+            <Button
+              className='tdn-reset'
+              variant='outlined'
+              onClick={reset}
+              disabled={resetting}
+            >
               Ещё раз
             </Button>
           )}
