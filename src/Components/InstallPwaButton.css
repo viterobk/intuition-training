@@ -1,0 +1,64 @@
+.install-pwa {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.install-pwa-button {
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 6px;
+  max-width: 15em;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-family: var(--font-body);
+  text-align: right;
+  cursor: pointer;
+  transition: color 0.18s ease, opacity 0.18s ease;
+}
+
+.install-pwa-button:hover:not(:disabled),
+.install-pwa-button:focus-visible:not(:disabled) {
+  color: var(--accent-deep);
+  outline: none;
+}
+
+.install-pwa-button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.install-pwa-icon {
+  margin-top: 0.12em;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.install-pwa-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  line-height: 1.2;
+}
+
+.install-pwa-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.install-pwa-hint {
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--ink-muted);
+  opacity: 0.9;
+}
+
+.install-pwa-button:hover:not(:disabled) .install-pwa-hint,
+.install-pwa-button:focus-visible:not(:disabled) .install-pwa-hint {
+  color: var(--ink-soft);
+}

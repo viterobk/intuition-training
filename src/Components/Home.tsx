@@ -8,6 +8,7 @@ import Pin from '@mui/icons-material/Pin';
 import LooksTwo from '@mui/icons-material/LooksTwo';
 import Casino from '@mui/icons-material/Casino';
 import ArrowForward from '@mui/icons-material/ArrowForward';
+import InstallPwaButton from './InstallPwaButton';
 
 const exercises = [
   {
@@ -53,7 +54,10 @@ class Home extends Component {
     return (
       <div className='Home page'>
         <section className='Home-hero page-section'>
-          <p className='Home-kicker'>Практика внимания</p>
+          <div className='Home-hero-top'>
+            <p className='Home-kicker'>Практика внимания</p>
+            <InstallPwaButton />
+          </div>
           <h1 className='Home-brand'>Тренировка интуиции</h1>
           <p className='Home-lead'>
             Короткие упражнения, чтобы замечать внутренние сигналы и проверять их в деле.
