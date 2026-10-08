@@ -126,6 +126,84 @@
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15);
 }
 
+.dice-history {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 20px auto 0;
+  max-width: 420px;
+  width: 100%;
+}
+
+.dice-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dice-history-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  letter-spacing: 0.02em;
+}
+
+.dice-history-rolls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  width: 100%;
+}
+
+.dice-history-empty {
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+}
+
+.dice-history-die {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+}
+
+.dice-history-die .die-face {
+  border-radius: 8px;
+  padding: 8%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.dice-history-reset {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.dice-history-reset:hover:not(:disabled),
+.dice-history-reset:focus-visible:not(:disabled) {
+  color: var(--accent-deep);
+  outline: none;
+}
+
+.dice-history-reset:disabled {
+  opacity: 0.4;
+  cursor: default;
+  text-decoration: none;
+}
+
 .dice-actions {
   display: flex;
   flex-direction: column;

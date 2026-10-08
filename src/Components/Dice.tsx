@@ -7,6 +7,7 @@ import './Dice.css';
 const ROLL_MS = 1100;
 const MIN_DICE = 1;
 const MAX_DICE = 6;
+const HISTORY_LIMIT = 6;
 /** Доля размера кубика от ширины/высоты поля (с запасом под поворот). */
 const DIE_W = 0.18;
 const DIE_H = 0.22;
@@ -188,6 +189,7 @@ export default function Dice() {
     createDice(1, false, createRng(timerSeed(new Date())))
   );
   const [rolling, setRolling] = useState(false);
+  const [history, setHistory] = useState<DieValue[]>([]);
   const timersRef = useRef<number[]>([]);
   const tumbleRef = useRef<number | null>(null);
   const tumbleRngRef = useRef<Rng | null>(null);
@@ -258,6 +260,14 @@ export default function Dice() {
       }
       tumbleRngRef.current = null;
       setDice(finalDice);
+      if (count === 1 && finalDice[0]) {
+        const value = finalDice[0].value;
+        setHistory((prev) =>
+          prev.length >= HISTORY_LIMIT
+            ? [...prev.slice(1), value]
+            : [...prev, value]
+        );
+      }
       setRolling(false);
     }, ROLL_MS);
   };
@@ -320,6 +330,37 @@ export default function Dice() {
             ))}
           </ToggleButtonGroup>
         </div>
+
+        {count === 1 && (
+          <div className='dice-history' aria-label='История бросков'>
+            <div className='dice-history-header'>
+              <div className='dice-history-label'>История бросков</div>
+              <button
+                type='button'
+                className='dice-history-reset'
+                onClick={() => setHistory([])}
+                disabled={rolling || history.length === 0}
+              >
+                Очистить
+              </button>
+            </div>
+            <div className='dice-history-rolls'>
+              {history.length === 0 ? (
+                <span className='dice-history-empty'>История пуста</span>
+              ) : (
+                history.map((value, index) => (
+                  <div
+                    key={`history-${index}-${value}`}
+                    className='dice-history-die'
+                    aria-label={`Бросок ${index + 1}: ${value}`}
+                  >
+                    <DieFace value={value} />
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
