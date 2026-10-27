@@ -45,7 +45,7 @@ const ALL_COLOR_OPTIONS: ColorOption[] = [
   { id: 'black', ariaLabel: 'Чёрная карта', key: 'Digit3', hex: '#1a1816' },
   { id: 'red', ariaLabel: 'Красная карта', key: 'Digit4', hex: '#c85a52' },
   { id: 'orange', ariaLabel: 'Оранжевая карта', key: 'Digit5', hex: '#d4894a' },
-  { id: 'yellow', ariaLabel: 'Жёлтая карта', key: 'Digit6', hex: '#d4b84a' },
+  { id: 'yellow', ariaLabel: 'Жёлтая карта', key: 'Digit6', hex: '#e8d56a' },
   { id: 'green', ariaLabel: 'Зелёная карта', key: 'Digit7', hex: '#5a9a62' },
   { id: 'cyan', ariaLabel: 'Голубая карта', key: 'Digit8', hex: '#6bb8c4' },
   { id: 'blue', ariaLabel: 'Синяя карта', key: 'Digit9', hex: '#3d6f9e' },
