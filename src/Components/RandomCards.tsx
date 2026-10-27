@@ -7,10 +7,10 @@ import './RandomCards.css';
 const RANKS = ['6', '7', '8', '9', '10', 'j', 'q', 'k', 'a'];
 const SUITS = ['c', 'd', 'h', 's'];
 const VISIBLE_LIMIT = 10;
-const FLY_MS = 520;
-const FLIP_MS = 420;
-const COLLECT_MS = 480;
-const SHUFFLE_MS = 920;
+const FLY_MS = 110;
+const FLIP_MS = 90;
+const COLLECT_MS = 100;
+const SHUFFLE_MS = 200;
 
 type DeckCard = {
   id: string;
@@ -83,7 +83,6 @@ export default function RandomCards() {
   const [fanOffset, setFanOffset] = useState(28);
   const [deckOrigin, setDeckOrigin] = useState({ left: 0, top: 0 });
 
-  const isBusy = Boolean(flight) || isShuffling || isCollecting;
   const remaining = deck.length;
   const flightId = flight?.card.id;
   const hiddenCount = Math.max(0, drawn.length - VISIBLE_LIMIT);
@@ -131,10 +130,23 @@ export default function RandomCards() {
     timersRef.current.push(id);
   };
 
+  const clearAnimTimers = () => {
+    timersRef.current.forEach((id) => window.clearTimeout(id));
+    timersRef.current = [];
+  };
+
   const drawCardAt = (index: number, elevateDeck = false) => {
-    if (isBusy || deck.length === 0 || index < 0 || index >= deck.length) {
+    if (deck.length === 0 || index < 0 || index >= deck.length) {
       return;
     }
+
+    // Прерываем текущую анимацию — кнопки не блокируются
+    clearAnimTimers();
+    setFlight(null);
+    setFlyActive(false);
+    setDeckElevated(false);
+    setIsCollecting(false);
+    setIsShuffling(false);
 
     measureLayout();
 
@@ -173,7 +185,7 @@ export default function RandomCards() {
   };
 
   const drawRandomCard = () => {
-    if (isBusy || deck.length === 0) {
+    if (deck.length === 0) {
       return;
     }
     const elapsedMs = Date.now() - sessionStart.getTime();
@@ -182,10 +194,7 @@ export default function RandomCards() {
   };
 
   const resetDeck = () => {
-    if (isBusy) {
-      return;
-    }
-
+    clearAnimTimers();
     measureLayout();
     const seed = timerSeed(sessionStart);
     const nextDeck = shuffleWithSeed(ALL_CARDS, seed);
@@ -314,12 +323,11 @@ export default function RandomCards() {
                   className={[
                     'random-deck',
                     remaining === 0 && !isShuffling ? 'is-empty' : '',
-                    isBusy ? 'is-busy' : '',
                     deckElevated ? 'is-elevated' : '',
                     isShuffling ? 'is-shuffling' : '',
                   ].filter(Boolean).join(' ')}
                   onClick={drawTopCard}
-                  disabled={isBusy || remaining === 0}
+                  disabled={remaining === 0}
                   aria-label={remaining === 0 ? 'Колода пуста' : 'Взять сверху'}
                 >
                   {(remaining > 0 || isShuffling) ? (
@@ -350,7 +358,7 @@ export default function RandomCards() {
                 type='button'
                 className='random-draw-random'
                 onClick={drawRandomCard}
-                disabled={isBusy || remaining === 0}
+                disabled={remaining === 0}
                 aria-label='Достать случайную карту сбоку'
                 title='Достать случайную'
               >
@@ -376,22 +384,17 @@ export default function RandomCards() {
             </div>
 
             <p className='random-deck-hint'>
-              {isCollecting
-                ? 'Собираем карты…'
-                : isShuffling
-                  ? 'Тасуем колоду…'
-                  : remaining === 0
-                    ? 'Колода закончилась'
-                    : 'Верхняя карта или случайная из колоды'}
+              {remaining === 0
+                ? 'Колода закончилась'
+                : 'Верхняя карта или случайная из колоды'}
             </p>
             <button
               type='button'
               className={`random-reset ${isShuffling || isCollecting ? 'is-shuffling' : ''}`}
               onClick={resetDeck}
-              disabled={isBusy}
             >
               <StyleIcon fontSize='small' />
-              {isCollecting || isShuffling ? 'Тасуем…' : 'Перетасовать'}
+              Перетасовать
             </button>
           </div>
         </div>
