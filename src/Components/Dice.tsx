@@ -272,6 +272,8 @@ export default function Dice() {
     }, ROLL_MS);
   };
 
+  const diceSum = dice.reduce((acc, die) => acc + die.value, 0);
+
   return (
     <div className='dice page'>
       <TopBar text='Игральные кубики' startTime={sessionStart} />
@@ -331,7 +333,7 @@ export default function Dice() {
           </ToggleButtonGroup>
         </div>
 
-        {count === 1 && (
+        {count === 1 ? (
           <div className='dice-history' aria-label='История бросков'>
             <div className='dice-history-header'>
               <div className='dice-history-label'>История бросков</div>
@@ -358,6 +360,19 @@ export default function Dice() {
                   </div>
                 ))
               )}
+            </div>
+          </div>
+        ) : (
+          <div
+            className={`dice-history dice-sum ${rolling ? 'is-rolling' : ''}`}
+            aria-live='polite'
+            aria-label={rolling ? 'Сумма считается' : `Сумма: ${diceSum}`}
+          >
+            <div className='dice-history-header'>
+              <div className='dice-history-label'>Сумма</div>
+            </div>
+            <div className='dice-history-rolls'>
+              <b className='dice-sum-value'>{rolling ? '…' : diceSum}</b>
             </div>
           </div>
         )}

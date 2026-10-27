@@ -204,6 +204,21 @@
   text-decoration: none;
 }
 
+.dice-sum-value {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--ink);
+  min-width: 1.5ch;
+  text-align: center;
+  line-height: 1;
+}
+
+.dice-sum.is-rolling .dice-sum-value {
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
 .dice-actions {
   display: flex;
   flex-direction: column;
