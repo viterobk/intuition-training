@@ -168,27 +168,6 @@
   font-weight: 600;
 }
 
-.bwc-mini-card-black {
-  background: #2f2b28;
-  color: rgba(255, 255, 255, 0.55);
-}
-
-.bwc-mini-card-white {
-  background: #f2ebe3;
-  color: rgba(20, 42, 40, 0.35);
-}
-
-.bwc-mini-card-red {
-  background: #b54a3c;
-}
-
-.bwc-mini-card-blue {
-  background: #3d6a8c;
-}
-
-.bwc-mini-card-green {
-  background: #3f7a55;
-}
 
 .bwc-reveal {
   position: absolute;
@@ -213,8 +192,16 @@
 
 .bwc-controls {
   --guess-gap: clamp(4px, 1.2vw, 10px);
-  /* Ширина как при 5 цветах на всю полосу +/−, независимо от числа включённых */
+  /* Ширина как при 5 цветах на всю полосу +/− */
   --guess-w: calc((100% - 4 * var(--guess-gap)) / 5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--guess-gap);
+  width: 100%;
+}
+
+.bwc-controls-row {
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -249,7 +236,6 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 6px;
   width: var(--guess-w);
   max-width: var(--guess-w);
   padding: 0;
@@ -268,27 +254,8 @@
   border-radius: clamp(8px, 2vw, 12px);
   border: 1px solid rgba(20, 42, 40, 0.16);
   box-shadow: 0 10px 20px rgba(20, 42, 40, 0.12);
+  background: var(--guess-color, #2f2b28);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
-}
-
-.bwc-guess--white .bwc-guess-swatch {
-  background: #f2ebe3;
-}
-
-.bwc-guess--black .bwc-guess-swatch {
-  background: #2f2b28;
-}
-
-.bwc-guess--red .bwc-guess-swatch {
-  background: #b54a3c;
-}
-
-.bwc-guess--blue .bwc-guess-swatch {
-  background: #3d6a8c;
-}
-
-.bwc-guess--green .bwc-guess-swatch {
-  background: #3f7a55;
 }
 
 .bwc-guess:hover:not(:disabled) .bwc-guess-swatch,
@@ -305,19 +272,6 @@
 .bwc-guess:disabled {
   opacity: 0.45;
   cursor: default;
-}
-
-.bwc-guess-caption {
-  width: 100%;
-  font-size: clamp(0.58rem, 2.4vw, 0.72rem);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--ink-soft);
-  line-height: 1.2;
-  text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .bwc-deck {
@@ -413,30 +367,11 @@
   transform: rotateY(180deg);
 }
 
-.bwc-flight-front-black {
-  background: #2f2b28;
-}
-
-.bwc-flight-front-white {
-  background: #f2ebe3;
-}
-
-.bwc-flight-front-red {
-  background: #b54a3c;
-}
-
-.bwc-flight-front-blue {
-  background: #3d6a8c;
-}
-
-.bwc-flight-front-green {
-  background: #3f7a55;
-}
-
 .bwc-palette-dialog {
   border-radius: 16px !important;
   background: #f7f2ea !important;
-  max-width: 320px;
+  max-width: 360px;
+  width: calc(100% - 32px);
 }
 
 .bwc-palette-dialog .MuiDialogTitle-root {
@@ -447,71 +382,87 @@
 }
 
 .bwc-palette-dialog .MuiDialogContent-root {
-  padding-top: 0 !important;
+  padding-top: 4px !important;
+  padding-bottom: 20px !important;
 }
 
-.bwc-palette-hint {
-  margin: 0 0 12px;
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  color: var(--ink-soft);
-  line-height: 1.4;
-}
-
-.bwc-palette-list {
+.bwc-mode-list {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.bwc-palette-item {
+.bwc-mode-list .MuiFormControlLabel-root {
   margin: 0 !important;
-  padding: 4px 2px;
+  padding: 6px 4px;
   border-radius: 10px;
+  align-items: center;
 }
 
-.bwc-palette-item:hover {
+.bwc-mode-list .MuiFormControlLabel-root:hover {
   background: rgba(20, 42, 40, 0.04);
 }
 
-.bwc-palette-label {
+.bwc-mode-label {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   color: var(--ink);
-  text-transform: capitalize;
 }
 
-.bwc-palette-swatch {
-  display: inline-block;
+.bwc-mode-squares {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bwc-mode-square {
   width: 22px;
-  height: 32px;
-  border-radius: 6px;
-  border: 1px solid rgba(20, 42, 40, 0.16);
-  box-shadow: 0 4px 10px rgba(20, 42, 40, 0.1);
+  height: 22px;
+  border-radius: 5px;
+  border: 1px solid rgba(20, 42, 40, 0.18);
+  box-shadow: 0 2px 6px rgba(20, 42, 40, 0.1);
   flex-shrink: 0;
 }
 
-.bwc-palette-swatch--white {
-  background: #f2ebe3;
+.bwc-custom-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px 4px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
 }
 
-.bwc-palette-swatch--black {
-  background: #2f2b28;
+.bwc-custom-grid.is-disabled {
+  opacity: 0.45;
 }
 
-.bwc-palette-swatch--red {
-  background: #b54a3c;
+.bwc-custom-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+  cursor: pointer;
 }
 
-.bwc-palette-swatch--blue {
-  background: #3d6a8c;
+.bwc-custom-item.is-disabled {
+  cursor: default;
 }
 
-.bwc-palette-swatch--green {
-  background: #3f7a55;
+.bwc-custom-item .MuiCheckbox-root {
+  padding: 2px;
+}
+
+.bwc-custom-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  border: 1px solid rgba(20, 42, 40, 0.16);
+  box-shadow: 0 2px 6px rgba(20, 42, 40, 0.1);
 }
 
 .bwc-chart-toggle {
