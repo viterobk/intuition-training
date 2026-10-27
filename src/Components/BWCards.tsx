@@ -4,12 +4,26 @@ import { FormControlLabel, Switch } from '@mui/material';
 import TopBar from './TopBar';
 import './BWCards.css';
 
-const FLY_MS = 520;
-const FLIP_MS = 420;
-const SETTLE_MS = 520;
+const FLIP_MS = 80;
+const SETTLE_MS = 120;
 
 type CardColor = 'black' | 'white';
-type FlightPhase = 'fly' | 'flip' | 'settle';
+// Позже можно расширить: 'red' | 'blue' | 'green' (до 5 цветов всего)
+
+type ColorOption = {
+  id: CardColor;
+  label: string;
+  ariaLabel: string;
+  key: string;
+};
+
+/** Палитра для угадывания. Чтобы добавить цвет — расширьте CardColor и этот список. */
+const COLOR_OPTIONS: ColorOption[] = [
+  { id: 'white', label: 'белая', ariaLabel: 'Белая карта', key: 'ArrowLeft' },
+  { id: 'black', label: 'чёрная', ariaLabel: 'Чёрная карта', key: 'ArrowRight' },
+];
+
+type FlightPhase = 'flip' | 'settle';
 
 type Flight = {
   id: number;
@@ -19,7 +33,8 @@ type Flight = {
 };
 
 const cardBackUrl = `${process.env.PUBLIC_URL}/cards/back.svg`;
-const rollColor = (): CardColor => (Math.random() < 0.5 ? 'black' : 'white');
+const rollColor = (): CardColor =>
+  COLOR_OPTIONS[Math.floor(Math.random() * COLOR_OPTIONS.length)].id;
 const ZONE_DECK_MAX = 4;
 
 function ZoneDeckLayers({ depth }: { depth: number }) {
@@ -136,7 +151,6 @@ export default function BWCards() {
 
   const tableRef = useRef<HTMLDivElement>(null);
   const deckRef = useRef<HTMLDivElement>(null);
-  const revealRef = useRef<HTMLDivElement>(null);
   const plusStackRef = useRef<HTMLDivElement>(null);
   const minusStackRef = useRef<HTMLDivElement>(null);
   const timersRef = useRef<number[]>([]);
@@ -152,9 +166,9 @@ export default function BWCards() {
   const [showChart, setShowChart] = useState(false);
   const [flight, setFlight] = useState<Flight | null>(null);
   const [flyActive, setFlyActive] = useState(false);
+  const [cardFlipped, setCardFlipped] = useState(false);
   const [origins, setOrigins] = useState({
     deck: { left: 0, top: 0 },
-    reveal: { left: 0, top: 0 },
     plus: { left: 0, top: 0 },
     minus: { left: 0, top: 0 },
   });
@@ -181,7 +195,6 @@ export default function BWCards() {
     };
     setOrigins({
       deck: read(deckRef.current),
-      reveal: read(revealRef.current),
       plus: read(plusStackRef.current),
       minus: read(minusStackRef.current),
     });
@@ -218,24 +231,22 @@ export default function BWCards() {
     const correct = color === answer;
     const id = Date.now();
 
-    setFlight({ id, color, correct, phase: 'fly' });
-    setFlyActive(false);
-    // Одновременно с вылетом карты в зонах переворачиваем последнюю карту рубашкой вверх
+    // Переворот на месте колоды, затем сдвиг влево/вправо в зону
+    setFlight({ id, color, correct, phase: 'flip' });
+    setFlyActive(true);
+    setCardFlipped(false);
     setPlusFaceUp(false);
     setMinusFaceUp(false);
 
+    // После монтирования — иначе CSS transition не сработает
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => setFlyActive(true));
+      requestAnimationFrame(() => setCardFlipped(true));
     });
-
-    queueTimeout(() => {
-      setFlight({ id, color, correct, phase: 'flip' });
-    }, FLY_MS);
 
     queueTimeout(() => {
       measureLayout();
       setFlight({ id, color, correct, phase: 'settle' });
-    }, FLY_MS + FLIP_MS);
+    }, FLIP_MS);
 
     queueTimeout(() => {
       if (correct) {
@@ -254,16 +265,15 @@ export default function BWCards() {
       nextColorRef.current = rollColor();
       setFlight(null);
       setFlyActive(false);
-    }, FLY_MS + FLIP_MS + SETTLE_MS);
+      setCardFlipped(false);
+    }, FLIP_MS + SETTLE_MS);
   };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
-        guess('white');
-      }
-      if (e.key === 'ArrowRight') {
-        guess('black');
+      const option = COLOR_OPTIONS.find((item) => item.key === e.key);
+      if (option) {
+        guess(option.id);
       }
     };
     window.addEventListener('keydown', onKeyDown);
@@ -275,9 +285,7 @@ export default function BWCards() {
       ? flight.correct
         ? origins.plus
         : origins.minus
-      : flight
-        ? origins.reveal
-        : origins.deck;
+      : origins.deck;
 
   return (
     <div className='bwc page'>
@@ -291,7 +299,7 @@ export default function BWCards() {
         </div>
 
         <div className='bwc-table' ref={tableRef}>
-          <div className='bwc-zones'>
+          <div className='bwc-play'>
             <div className='bwc-zone bwc-zone-plus'>
               <div className='bwc-zone-label'>+</div>
               <div className='bwc-zone-count'>{correctCount}</div>
@@ -316,7 +324,25 @@ export default function BWCards() {
               <div className='bwc-zone-caption'>правильно</div>
             </div>
 
-            <div className='bwc-reveal' ref={revealRef} aria-hidden='true' />
+            <div className='bwc-center'>
+              <div className='bwc-center-head' aria-hidden='true' />
+              <div
+                ref={deckRef}
+                className={`bwc-deck ${isBusy ? 'is-busy' : ''}`}
+                aria-hidden='true'
+              >
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <span
+                    key={`deck-${index}`}
+                    className='bwc-deck-layer'
+                    style={{ transform: `translate(${index}px, ${-index}px)` }}
+                  >
+                    <img src={cardBackUrl} alt='' draggable={false} />
+                  </span>
+                ))}
+              </div>
+              <div className='bwc-zone-caption'>колода</div>
+            </div>
 
             <div className='bwc-zone bwc-zone-minus'>
               <div className='bwc-zone-label'>−</div>
@@ -348,7 +374,7 @@ export default function BWCards() {
               className={[
                 'bwc-flight',
                 flyActive ? 'is-active' : '',
-                flight.phase === 'flip' || flight.phase === 'settle' ? 'is-flipped' : '',
+                cardFlipped ? 'is-flipped' : '',
                 flight.phase === 'settle' ? 'is-settling' : '',
               ].join(' ')}
               style={{
@@ -367,74 +393,20 @@ export default function BWCards() {
             </div>
           )}
 
-          <div className='bwc-controls'>
-            <button
-              type='button'
-              className='bwc-guess bwc-guess--white bwc-guess--left'
-              onClick={() => guess('white')}
-              disabled={isBusy}
-              aria-label='Белая карта'
-            >
-              <svg className='bwc-guess-arrow bwc-guess-arrow--mirror' viewBox='0 0 72 120' aria-hidden='true'>
-                <path
-                  d='M28 8 L58 60 L28 112'
-                  fill='none'
-                  stroke='currentColor'
-                  strokeWidth='10'
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                />
-                <path
-                  d='M10 60 H52'
-                  fill='none'
-                  stroke='currentColor'
-                  strokeWidth='10'
-                  strokeLinecap='round'
-                />
-              </svg>
-              <span className='bwc-guess-caption'>белая</span>
-            </button>
-            <div
-              ref={deckRef}
-              className={`bwc-deck ${isBusy ? 'is-busy' : ''}`}
-              aria-hidden='true'
-            >
-              {Array.from({ length: 5 }).map((_, index) => (
-                <span
-                  key={`deck-${index}`}
-                  className='bwc-deck-layer'
-                  style={{ transform: `translate(${index}px, ${-index}px)` }}
-                >
-                  <img src={cardBackUrl} alt='' draggable={false} />
-                </span>
-              ))}
-            </div>
-            <button
-              type='button'
-              className='bwc-guess bwc-guess--black bwc-guess--right'
-              onClick={() => guess('black')}
-              disabled={isBusy}
-              aria-label='Чёрная карта'
-            >
-              <svg className='bwc-guess-arrow' viewBox='0 0 72 120' aria-hidden='true'>
-                <path
-                  d='M28 8 L58 60 L28 112'
-                  fill='none'
-                  stroke='currentColor'
-                  strokeWidth='10'
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                />
-                <path
-                  d='M10 60 H52'
-                  fill='none'
-                  stroke='currentColor'
-                  strokeWidth='10'
-                  strokeLinecap='round'
-                />
-              </svg>
-              <span className='bwc-guess-caption'>чёрная</span>
-            </button>
+          <div className='bwc-controls' role='group' aria-label='Выбор цвета'>
+            {COLOR_OPTIONS.map((option) => (
+              <button
+                key={option.id}
+                type='button'
+                className={`bwc-guess bwc-guess--${option.id}`}
+                onClick={() => guess(option.id)}
+                disabled={isBusy}
+                aria-label={option.ariaLabel}
+              >
+                <span className='bwc-guess-swatch' aria-hidden='true' />
+                <span className='bwc-guess-caption'>{option.label}</span>
+              </button>
+            ))}
           </div>
 
           <div className='bwc-chart-toggle'>

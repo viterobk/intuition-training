@@ -16,14 +16,14 @@
   position: relative;
   max-width: 560px;
   margin: 0 auto;
-  min-height: calc(var(--card-h) * 2 + 180px);
+  min-height: calc(var(--card-h) * 2 + 160px);
 }
 
-.bwc-zones {
+.bwc-play {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  gap: 18px;
+  gap: clamp(10px, 3vw, 18px);
   position: relative;
   margin-top: 8px;
 }
@@ -40,6 +40,21 @@
   border-radius: var(--radius-md);
   border: 1px dashed var(--border);
   background: rgba(255, 255, 255, 0.35);
+}
+
+.bwc-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: calc(var(--card-w) + 28px);
+  padding: 10px 8px 12px;
+}
+
+.bwc-center-head {
+  /* Совпадает с label + count в зонах, чтобы колода была на одной линии со стопками */
+  height: calc(1.6rem + 0.78rem + 6px);
+  flex: 0 0 auto;
 }
 
 .bwc-zone-plus {
@@ -111,7 +126,7 @@
   inset: 0;
   z-index: 10;
   transform-style: preserve-3d;
-  transition: transform 0.42s ease;
+  transition: transform 0.08s ease;
 }
 
 .bwc-mini-flip.is-face-up {
@@ -162,19 +177,21 @@
 .bwc-reveal {
   position: absolute;
   left: 50%;
-  top: 46px;
+  top: 8px;
   width: var(--card-w);
   height: var(--card-h);
   margin-left: calc(var(--card-w) / -2);
   border-radius: 12px;
   pointer-events: none;
+  z-index: 1;
 }
 
 .bwc-controls {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  flex-wrap: wrap;
+  gap: 12px;
   margin-top: 28px;
 }
 
@@ -183,60 +200,43 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  width: clamp(56px, 16vw, 72px);
-  height: var(--card-h);
+  gap: 8px;
+  width: clamp(64px, 18vw, 80px);
   padding: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
-  transition: color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+  transition: transform 0.18s ease, opacity 0.2s ease;
 }
 
-.bwc-guess--white {
-  color: #f2ebe3;
+.bwc-guess-swatch {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  max-height: calc(var(--card-h) * 0.72);
+  border-radius: 12px;
+  border: 1px solid rgba(20, 42, 40, 0.16);
+  box-shadow: 0 10px 20px rgba(20, 42, 40, 0.12);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
-.bwc-guess--white .bwc-guess-caption {
-  color: var(--ink-soft);
+.bwc-guess--white .bwc-guess-swatch {
+  background: #f2ebe3;
 }
 
-.bwc-guess--white .bwc-guess-arrow {
-  filter: drop-shadow(0 0 1px rgba(47, 43, 40, 0.5)) drop-shadow(0 1px 2px rgba(20, 42, 40, 0.12));
+.bwc-guess--black .bwc-guess-swatch {
+  background: #2f2b28;
 }
 
-.bwc-guess--black {
-  color: #2f2b28;
-}
-
-.bwc-guess--left:hover:not(:disabled),
-.bwc-guess--left:focus-visible:not(:disabled) {
-  transform: translateX(-3px);
+.bwc-guess:hover:not(:disabled) .bwc-guess-swatch,
+.bwc-guess:focus-visible:not(:disabled) .bwc-guess-swatch {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 24px rgba(20, 42, 40, 0.16);
   outline: none;
 }
 
-.bwc-guess--left:active:not(:disabled) {
-  transform: translateX(-6px);
-}
-
-.bwc-guess--right:hover:not(:disabled),
-.bwc-guess--right:focus-visible:not(:disabled) {
-  transform: translateX(3px);
-  outline: none;
-}
-
-.bwc-guess--right:active:not(:disabled) {
-  transform: translateX(6px);
-}
-
-.bwc-guess--white:hover:not(:disabled),
-.bwc-guess--white:focus-visible:not(:disabled) {
-  color: #faf6f0;
-}
-
-.bwc-guess--black:hover:not(:disabled),
-.bwc-guess--black:focus-visible:not(:disabled) {
-  color: #3d3834;
+.bwc-guess:active:not(:disabled) .bwc-guess-swatch {
+  transform: translateY(1px) scale(0.98);
 }
 
 .bwc-guess:disabled {
@@ -244,24 +244,11 @@
   cursor: default;
 }
 
-.bwc-guess-arrow {
-  width: 100%;
-  height: auto;
-  max-height: 58%;
-  display: block;
-}
-
-.bwc-guess-arrow--mirror {
-  transform: scaleX(-1);
-}
-
 .bwc-guess-caption {
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: inherit;
-  opacity: 0.9;
-  max-width: 5.5em;
+  color: var(--ink-soft);
   line-height: 1.2;
   text-align: center;
 }
@@ -305,8 +292,8 @@
   z-index: 80;
   pointer-events: none;
   transition:
-    left 0.52s cubic-bezier(0.22, 0.8, 0.28, 1),
-    top 0.52s cubic-bezier(0.22, 0.8, 0.28, 1);
+    left 0.12s cubic-bezier(0.22, 0.8, 0.28, 1),
+    top 0.12s cubic-bezier(0.22, 0.8, 0.28, 1);
 }
 
 .bwc-flight.is-active {
@@ -316,8 +303,8 @@
 
 .bwc-flight.is-settling {
   transition:
-    left 0.52s cubic-bezier(0.22, 0.8, 0.28, 1),
-    top 0.52s cubic-bezier(0.22, 0.8, 0.28, 1);
+    left 0.12s cubic-bezier(0.22, 0.8, 0.28, 1),
+    top 0.12s cubic-bezier(0.22, 0.8, 0.28, 1);
 }
 
 .bwc-flight-flipper {
@@ -325,7 +312,7 @@
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  transition: transform 0.42s ease;
+  transition: transform 0.08s ease;
 }
 
 .bwc-flight.is-flipped .bwc-flight-flipper {
