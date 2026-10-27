@@ -13,7 +13,7 @@ import InstallPwaButton from './InstallPwaButton';
 const exercises = [
   {
     to: '/bwc',
-    title: 'Черно-белые карты',
+    title: 'Цветные карты',
     description: 'Определите цвет следующей карты и следите за динамикой точности.',
     icon: Compare,
     tone: 'tone-cards',

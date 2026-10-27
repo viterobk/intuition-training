@@ -1,14 +1,21 @@
 /* eslint-disable import/no-anonymous-default-export */
 import { useEffect, useRef, useState } from 'react';
-import { FormControlLabel, Switch } from '@mui/material';
+import {
+  Checkbox,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  Switch,
+} from '@mui/material';
 import TopBar from './TopBar';
 import './BWCards.css';
 
 const FLIP_MS = 80;
 const SETTLE_MS = 120;
+const STORAGE_KEY = 'bwc-enabled-colors';
 
-type CardColor = 'black' | 'white';
-// Позже можно расширить: 'red' | 'blue' | 'green' (до 5 цветов всего)
+type CardColor = 'black' | 'white' | 'red' | 'blue' | 'green';
 
 type ColorOption = {
   id: CardColor;
@@ -17,11 +24,41 @@ type ColorOption = {
   key: string;
 };
 
-/** Палитра для угадывания. Чтобы добавить цвет — расширьте CardColor и этот список. */
-const COLOR_OPTIONS: ColorOption[] = [
-  { id: 'white', label: 'белая', ariaLabel: 'Белая карта', key: 'ArrowLeft' },
-  { id: 'black', label: 'чёрная', ariaLabel: 'Чёрная карта', key: 'ArrowRight' },
+/** Полная палитра. Активный набор задаётся чекбоксами и хранится в localStorage. */
+const ALL_COLOR_OPTIONS: ColorOption[] = [
+  { id: 'white', label: 'белый', ariaLabel: 'Белая карта', key: 'ArrowLeft' },
+  { id: 'black', label: 'чёрный', ariaLabel: 'Чёрная карта', key: 'ArrowRight' },
+  { id: 'red', label: 'красный', ariaLabel: 'Красная карта', key: 'Digit1' },
+  { id: 'blue', label: 'синий', ariaLabel: 'Синяя карта', key: 'Digit2' },
+  { id: 'green', label: 'зелёный', ariaLabel: 'Зелёная карта', key: 'Digit3' },
 ];
+
+const DEFAULT_ENABLED: CardColor[] = ['white', 'black'];
+const ALL_COLOR_IDS = ALL_COLOR_OPTIONS.map((option) => option.id);
+
+function loadEnabledColors(): CardColor[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      return DEFAULT_ENABLED;
+    }
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) {
+      return DEFAULT_ENABLED;
+    }
+    const valid = ALL_COLOR_IDS.filter((id) => parsed.includes(id));
+    return valid.length > 0 ? valid : DEFAULT_ENABLED;
+  } catch {
+    return DEFAULT_ENABLED;
+  }
+}
+
+function saveEnabledColors(colors: CardColor[]) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(colors));
+}
+
+const rollColor = (pool: CardColor[]): CardColor =>
+  pool[Math.floor(Math.random() * pool.length)];
 
 type FlightPhase = 'flip' | 'settle';
 
@@ -33,8 +70,6 @@ type Flight = {
 };
 
 const cardBackUrl = `${process.env.PUBLIC_URL}/cards/back.svg`;
-const rollColor = (): CardColor =>
-  COLOR_OPTIONS[Math.floor(Math.random() * COLOR_OPTIONS.length)].id;
 const ZONE_DECK_MAX = 4;
 
 function ZoneDeckLayers({ depth }: { depth: number }) {
@@ -147,14 +182,17 @@ function ScoreChart({ history, offset }: { history: number[]; offset: number }) 
 }
 
 export default function BWCards() {
-  document.title = 'Ч/Б карты';
+  document.title = 'Цветные карты';
 
   const tableRef = useRef<HTMLDivElement>(null);
   const deckRef = useRef<HTMLDivElement>(null);
   const plusStackRef = useRef<HTMLDivElement>(null);
   const minusStackRef = useRef<HTMLDivElement>(null);
   const timersRef = useRef<number[]>([]);
-  const nextColorRef = useRef<CardColor>(rollColor());
+  const [enabledColors, setEnabledColors] = useState<CardColor[]>(loadEnabledColors);
+  const enabledColorsRef = useRef(enabledColors);
+  enabledColorsRef.current = enabledColors;
+  const nextColorRef = useRef<CardColor>(rollColor(enabledColors));
 
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
@@ -167,16 +205,26 @@ export default function BWCards() {
   const [flight, setFlight] = useState<Flight | null>(null);
   const [flyActive, setFlyActive] = useState(false);
   const [cardFlipped, setCardFlipped] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [origins, setOrigins] = useState({
     deck: { left: 0, top: 0 },
     plus: { left: 0, top: 0 },
     minus: { left: 0, top: 0 },
   });
 
+  const activeOptions = ALL_COLOR_OPTIONS.filter((option) =>
+    enabledColors.includes(option.id)
+  );
   const totalAnswers = correctCount + wrongCount;
   const resultPercent = totalAnswers > 0 ? Math.round((correctCount * 100) / totalAnswers) : 50;
   const chartOffset = Math.max(0, totalAnswers - scoreHistory.length);
   const isBusy = Boolean(flight);
+
+  useEffect(() => {
+    if (!enabledColors.includes(nextColorRef.current)) {
+      nextColorRef.current = rollColor(enabledColors);
+    }
+  }, [enabledColors]);
 
   const measureLayout = () => {
     if (!tableRef.current) {
@@ -204,7 +252,7 @@ export default function BWCards() {
     measureLayout();
     window.addEventListener('resize', measureLayout);
     return () => window.removeEventListener('resize', measureLayout);
-  }, [correctCount, wrongCount]);
+  }, [correctCount, wrongCount, enabledColors]);
 
   useEffect(() => {
     const timers = timersRef.current;
@@ -221,8 +269,40 @@ export default function BWCards() {
   const busyRef = useRef(false);
   busyRef.current = isBusy;
 
+  const resetStats = () => {
+    timersRef.current.forEach((id) => window.clearTimeout(id));
+    timersRef.current = [];
+    setCorrectCount(0);
+    setWrongCount(0);
+    setPlusTop(null);
+    setMinusTop(null);
+    setPlusFaceUp(false);
+    setMinusFaceUp(false);
+    setScoreHistory([]);
+    setFlight(null);
+    setFlyActive(false);
+    setCardFlipped(false);
+  };
+
+  const toggleColor = (color: CardColor) => {
+    const isOn = enabledColors.includes(color);
+    if (isOn && enabledColors.length <= 1) {
+      return;
+    }
+    const next = isOn
+      ? enabledColors.filter((id) => id !== color)
+      : ALL_COLOR_IDS.filter((id) => enabledColors.includes(id) || id === color);
+    saveEnabledColors(next);
+    setEnabledColors(next);
+    nextColorRef.current = rollColor(next);
+    resetStats();
+  };
+
   const guess = (answer: CardColor) => {
     if (busyRef.current) {
+      return;
+    }
+    if (!enabledColorsRef.current.includes(answer)) {
       return;
     }
 
@@ -262,7 +342,7 @@ export default function BWCards() {
         const prevDiff = prev.length ? prev[prev.length - 1] : 0;
         return [...prev, correct ? prevDiff + 1 : prevDiff - 1].slice(-50);
       });
-      nextColorRef.current = rollColor();
+      nextColorRef.current = rollColor(enabledColorsRef.current);
       setFlight(null);
       setFlyActive(false);
       setCardFlipped(false);
@@ -271,14 +351,19 @@ export default function BWCards() {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      const option = COLOR_OPTIONS.find((item) => item.key === e.key);
-      if (option) {
+      if (paletteOpen) {
+        return;
+      }
+      const option = ALL_COLOR_OPTIONS.find(
+        (item) => item.key === e.key || item.key === e.code
+      );
+      if (option && enabledColorsRef.current.includes(option.id)) {
         guess(option.id);
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [paletteOpen]);
 
   const target =
     flight?.phase === 'settle'
@@ -289,7 +374,7 @@ export default function BWCards() {
 
   return (
     <div className='bwc page'>
-      <TopBar text='Черно-белые карты' />
+      <TopBar text='Цветные карты' />
       <div className='bwc-body page-section'>
         <div className='bwc-stats'>
           <div className='stat-chip'>
@@ -393,20 +478,29 @@ export default function BWCards() {
             </div>
           )}
 
-          <div className='bwc-controls' role='group' aria-label='Выбор цвета'>
-            {COLOR_OPTIONS.map((option) => (
-              <button
-                key={option.id}
-                type='button'
-                className={`bwc-guess bwc-guess--${option.id}`}
-                onClick={() => guess(option.id)}
-                disabled={isBusy}
-                aria-label={option.ariaLabel}
-              >
-                <span className='bwc-guess-swatch' aria-hidden='true' />
-                <span className='bwc-guess-caption'>{option.label}</span>
-              </button>
-            ))}
+          <div className='bwc-controls-wrap'>
+            <button
+              type='button'
+              className='bwc-palette-link'
+              onClick={() => setPaletteOpen(true)}
+            >
+              Выбрать цвета
+            </button>
+            <div className='bwc-controls' role='group' aria-label='Выбор цвета'>
+              {activeOptions.map((option) => (
+                <button
+                  key={option.id}
+                  type='button'
+                  className={`bwc-guess bwc-guess--${option.id}`}
+                  onClick={() => guess(option.id)}
+                  disabled={isBusy}
+                  aria-label={option.ariaLabel}
+                >
+                  <span className='bwc-guess-swatch' aria-hidden='true' />
+                  <span className='bwc-guess-caption'>{option.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className='bwc-chart-toggle'>
@@ -426,6 +520,47 @@ export default function BWCards() {
 
         {showChart && <ScoreChart history={scoreHistory} offset={chartOffset} />}
       </div>
+
+      <Dialog
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        aria-labelledby='bwc-palette-title'
+        PaperProps={{ className: 'bwc-palette-dialog' }}
+      >
+        <DialogTitle id='bwc-palette-title'>Цвета в тренировке</DialogTitle>
+        <DialogContent>
+          <p className='bwc-palette-hint'>Отметьте цвета, которые будут появляться в колоде.</p>
+          <div className='bwc-palette-list' role='group' aria-label='Список цветов'>
+            {ALL_COLOR_OPTIONS.map((option) => {
+              const checked = enabledColors.includes(option.id);
+              const onlyOne = checked && enabledColors.length === 1;
+              return (
+                <FormControlLabel
+                  key={option.id}
+                  className='bwc-palette-item'
+                  control={
+                    <Checkbox
+                      checked={checked}
+                      disabled={onlyOne}
+                      onChange={() => toggleColor(option.id)}
+                      color='primary'
+                    />
+                  }
+                  label={
+                    <span className='bwc-palette-label'>
+                      <span
+                        className={`bwc-palette-swatch bwc-palette-swatch--${option.id}`}
+                        aria-hidden='true'
+                      />
+                      {option.label}
+                    </span>
+                  }
+                />
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
