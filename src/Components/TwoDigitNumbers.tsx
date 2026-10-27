@@ -77,6 +77,47 @@ const firstIncompleteIndex = (guesses: GuessSlot[]) => {
   return index === -1 ? SLOT_COUNT - 1 : index;
 };
 
+/** Слот, в который сейчас попадёт следующая цифра (та же логика, что в appendDigit). */
+const resolveWriteTarget = (
+  guesses: GuessSlot[],
+  activeIndex: number
+): { index: number; current: GuessSlot } | null => {
+  let index = activeIndex;
+  if (index < 0 || index >= SLOT_COUNT) {
+    index = firstIncompleteIndex(guesses);
+  }
+  if (guesses[index].length >= 2) {
+    const nextEmpty = guesses.findIndex((value, i) => i > index && value.length < 2);
+    if (nextEmpty === -1) {
+      return null;
+    }
+    index = nextEmpty;
+  }
+  return { index, current: guesses[index] };
+};
+
+const isDigitDisabled = (
+  digit: string,
+  guesses: GuessSlot[],
+  activeIndex: number
+): boolean => {
+  const target = resolveWriteTarget(guesses, activeIndex);
+  if (!target) {
+    return true;
+  }
+  const { index, current } = target;
+  // Первая цифра двузначного числа не может быть 0
+  if (current.length === 0 && digit === '0') {
+    return true;
+  }
+  // Вторая цифра: нельзя собрать число, которое уже введено в другом слоте
+  if (current.length === 1) {
+    const candidate = `${current}${digit}`;
+    return guesses.some((value, i) => i !== index && value === candidate);
+  }
+  return false;
+};
+
 export default function TwoDigitNumbers() {
   document.title = 'Двузначные числа';
 
@@ -117,21 +158,17 @@ export default function TwoDigitNumbers() {
     if (revealedRef.current) {
       return;
     }
+    if (isDigitDisabled(digit, guessesRef.current, activeIndexRef.current)) {
+      return;
+    }
+
+    const target = resolveWriteTarget(guessesRef.current, activeIndexRef.current);
+    if (!target) {
+      return;
+    }
 
     const next = [...guessesRef.current];
-    let index = activeIndexRef.current;
-    if (index < 0 || index >= SLOT_COUNT) {
-      index = firstIncompleteIndex(next);
-    }
-
-    if (next[index].length >= 2) {
-      const nextEmpty = next.findIndex((value, i) => i > index && value.length < 2);
-      if (nextEmpty === -1) {
-        return;
-      }
-      index = nextEmpty;
-    }
-
+    const { index } = target;
     const updated = `${next[index]}${digit}`.slice(0, 2);
     next[index] = updated;
     syncGuesses(next);
@@ -337,16 +374,21 @@ export default function TwoDigitNumbers() {
 
         {!revealed && (
           <div className='tdn-pad' role='group' aria-label='Клавиатура'>
-            {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((key) => (
-              <button
-                key={key}
-                type='button'
-                className='tdn-key'
-                onClick={() => appendDigit(key)}
-              >
-                {key}
-              </button>
-            ))}
+            {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((key) => {
+              const disabled = isDigitDisabled(key, guesses, activeIndex);
+              return (
+                <button
+                  key={key}
+                  type='button'
+                  className='tdn-key'
+                  onClick={() => appendDigit(key)}
+                  disabled={disabled}
+                  aria-disabled={disabled}
+                >
+                  {key}
+                </button>
+              );
+            })}
             <button
               type='button'
               className='tdn-key tdn-key-action'
@@ -359,6 +401,8 @@ export default function TwoDigitNumbers() {
               type='button'
               className='tdn-key'
               onClick={() => appendDigit('0')}
+              disabled={isDigitDisabled('0', guesses, activeIndex)}
+              aria-disabled={isDigitDisabled('0', guesses, activeIndex)}
             >
               0
             </button>

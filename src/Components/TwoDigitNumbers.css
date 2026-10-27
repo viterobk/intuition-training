@@ -162,13 +162,19 @@
   transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
-.tdn-key:hover {
+.tdn-key:hover:not(:disabled) {
   background: var(--surface-strong);
   border-color: var(--border-strong);
 }
 
-.tdn-key:active {
+.tdn-key:active:not(:disabled) {
   transform: translateY(1px) scale(0.98);
+}
+
+.tdn-key:disabled {
+  opacity: 0.35;
+  cursor: default;
+  box-shadow: none;
 }
 
 .tdn-key-action {
