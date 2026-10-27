@@ -4,7 +4,7 @@ import { Button, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import TopBar from './TopBar';
 import './Dice.css';
 
-const ROLL_MS = 1100;
+const ROLL_MS = 150;
 const MIN_DICE = 1;
 const MAX_DICE = 6;
 const HISTORY_LIMIT = 6;
@@ -210,8 +210,11 @@ export default function Dice() {
   };
 
   const roll = () => {
-    if (rolling) {
-      return;
+    timersRef.current.forEach((id) => window.clearTimeout(id));
+    timersRef.current = [];
+    if (tumbleRef.current !== null) {
+      window.clearInterval(tumbleRef.current);
+      tumbleRef.current = null;
     }
 
     const seed = timerSeed(sessionStart);
@@ -222,9 +225,6 @@ export default function Dice() {
     setRolling(true);
     setDice(createDice(count, true, tumbleRandom));
 
-    if (tumbleRef.current !== null) {
-      window.clearInterval(tumbleRef.current);
-    }
     tumbleRef.current = window.setInterval(() => {
       const random = tumbleRngRef.current;
       if (!random) {
@@ -251,7 +251,7 @@ export default function Dice() {
           rot: poses[index].rot,
         }));
       });
-    }, 70);
+    }, 50);
 
     queueTimeout(() => {
       if (tumbleRef.current !== null) {
@@ -282,7 +282,7 @@ export default function Dice() {
           Выберите число кубиков и бросьте.
         </p>
 
-        <div className={`dice-table ${rolling ? 'is-rolling' : ''}`} aria-live='polite'>
+        <div className='dice-table' aria-live='polite'>
           <div className='dice-felt'>
             {dice.map((die, index) => (
               <div
@@ -292,7 +292,7 @@ export default function Dice() {
                   left: `${die.x}%`,
                   top: `${die.y}%`,
                   transform: `translate(-50%, -50%) rotate(${die.rot}deg)`,
-                  transitionDelay: rolling ? '0ms' : `${index * 45}ms`,
+                  transitionDelay: rolling ? '0ms' : `${index * 20}ms`,
                   zIndex: index + 1,
                 }}
                 aria-label={`Кубик ${die.value}`}
@@ -304,13 +304,8 @@ export default function Dice() {
         </div>
 
         <div className='dice-actions'>
-          <Button
-            className='dice-roll'
-            variant='contained'
-            onClick={roll}
-            disabled={rolling}
-          >
-            {rolling ? 'Бросаем…' : 'Бросить'}
+          <Button className='dice-roll' variant='contained' onClick={roll}>
+            Бросить
           </Button>
 
           <ToggleButtonGroup
@@ -318,7 +313,15 @@ export default function Dice() {
             value={count}
             exclusive
             onChange={(_, value) => {
-              if (value != null && !rolling) {
+              if (value != null) {
+                timersRef.current.forEach((id) => window.clearTimeout(id));
+                timersRef.current = [];
+                if (tumbleRef.current !== null) {
+                  window.clearInterval(tumbleRef.current);
+                  tumbleRef.current = null;
+                }
+                tumbleRngRef.current = null;
+                setRolling(false);
                 setCount(value);
                 setDice(createDice(value, false, createRng(timerSeed(sessionStart))));
               }
@@ -326,7 +329,7 @@ export default function Dice() {
             aria-label='Количество кубиков'
           >
             {Array.from({ length: MAX_DICE - MIN_DICE + 1 }, (_, i) => i + MIN_DICE).map((n) => (
-              <ToggleButton key={n} value={n} disabled={rolling} aria-label={`${n} кубиков`}>
+              <ToggleButton key={n} value={n} aria-label={`${n} кубиков`}>
                 {n}
               </ToggleButton>
             ))}
@@ -341,7 +344,7 @@ export default function Dice() {
                 type='button'
                 className='dice-history-reset'
                 onClick={() => setHistory([])}
-                disabled={rolling || history.length === 0}
+                disabled={history.length === 0}
               >
                 Очистить
               </button>
@@ -364,15 +367,15 @@ export default function Dice() {
           </div>
         ) : (
           <div
-            className={`dice-history dice-sum ${rolling ? 'is-rolling' : ''}`}
+            className='dice-history dice-sum'
             aria-live='polite'
-            aria-label={rolling ? 'Сумма считается' : `Сумма: ${diceSum}`}
+            aria-label={`Сумма: ${diceSum}`}
           >
             <div className='dice-history-header'>
               <div className='dice-history-label'>Сумма</div>
             </div>
             <div className='dice-history-rolls'>
-              <b className='dice-sum-value'>{rolling ? '…' : diceSum}</b>
+              <b className='dice-sum-value'>{diceSum}</b>
             </div>
           </div>
         )}

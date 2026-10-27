@@ -39,39 +39,25 @@
   pointer-events: none;
 }
 
-.dice-table.is-rolling .dice-felt {
-  animation: dice-table-shake 0.18s ease-in-out infinite;
-}
-
-@keyframes dice-table-shake {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(1px);
-  }
-}
-
 .die {
   --die-size: clamp(52px, 14vw, 64px);
   position: absolute;
   width: var(--die-size);
   height: var(--die-size);
   transition:
-    left 0.55s cubic-bezier(0.22, 0.8, 0.28, 1),
-    top 0.55s cubic-bezier(0.22, 0.8, 0.28, 1),
-    transform 0.55s cubic-bezier(0.22, 0.8, 0.28, 1);
+    left 0.15s cubic-bezier(0.22, 0.8, 0.28, 1),
+    top 0.15s cubic-bezier(0.22, 0.8, 0.28, 1),
+    transform 0.15s cubic-bezier(0.22, 0.8, 0.28, 1);
   will-change: left, top, transform;
 }
 
 .die.is-tumbling {
-  transition-duration: 0.08s;
-  animation: die-tumble 0.35s linear infinite;
+  transition-duration: 0.05s;
+  animation: die-tumble 0.15s linear infinite;
 }
 
 .die.is-settled .die-face {
-  animation: die-land 0.45s cubic-bezier(0.22, 0.8, 0.28, 1) both;
+  animation: die-land 0.15s cubic-bezier(0.22, 0.8, 0.28, 1) both;
 }
 
 @keyframes die-tumble {
