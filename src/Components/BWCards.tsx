@@ -11,8 +11,8 @@ import {
 import TopBar from './TopBar';
 import './BWCards.css';
 
-const FLIP_MS = 80;
-const SETTLE_MS = 120;
+const FLIP_MS = 60;
+const SETTLE_MS = 90;
 const STORAGE_KEY = 'bwc-enabled-colors';
 
 type CardColor = 'black' | 'white' | 'red' | 'blue' | 'green';
@@ -206,6 +206,9 @@ export default function BWCards() {
   const [flyActive, setFlyActive] = useState(false);
   const [cardFlipped, setCardFlipped] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const pendingResultRef = useRef<{ id: number; color: CardColor; correct: boolean } | null>(
+    null
+  );
   const [origins, setOrigins] = useState({
     deck: { left: 0, top: 0 },
     plus: { left: 0, top: 0 },
@@ -266,12 +269,10 @@ export default function BWCards() {
     timersRef.current.push(id);
   };
 
-  const busyRef = useRef(false);
-  busyRef.current = isBusy;
-
   const resetStats = () => {
     timersRef.current.forEach((id) => window.clearTimeout(id));
     timersRef.current = [];
+    pendingResultRef.current = null;
     setCorrectCount(0);
     setWrongCount(0);
     setPlusTop(null);
@@ -298,18 +299,45 @@ export default function BWCards() {
     resetStats();
   };
 
-  const guess = (answer: CardColor) => {
-    if (busyRef.current) {
-      return;
+  const applyGuessResult = (color: CardColor, correct: boolean) => {
+    if (correct) {
+      setCorrectCount((n) => n + 1);
+      setPlusTop(color);
+      setPlusFaceUp(true);
+    } else {
+      setWrongCount((n) => n + 1);
+      setMinusTop(color);
+      setMinusFaceUp(true);
     }
+    setScoreHistory((prev) => {
+      const prevDiff = prev.length ? prev[prev.length - 1] : 0;
+      return [...prev, correct ? prevDiff + 1 : prevDiff - 1].slice(-50);
+    });
+    nextColorRef.current = rollColor(enabledColorsRef.current);
+  };
+
+  const guess = (answer: CardColor) => {
     if (!enabledColorsRef.current.includes(answer)) {
       return;
+    }
+
+    // Прерывание предыдущего полёта — кнопки не блокируются
+    if (pendingResultRef.current) {
+      timersRef.current.forEach((id) => window.clearTimeout(id));
+      timersRef.current = [];
+      const pending = pendingResultRef.current;
+      pendingResultRef.current = null;
+      applyGuessResult(pending.color, pending.correct);
+      setFlight(null);
+      setFlyActive(false);
+      setCardFlipped(false);
     }
 
     measureLayout();
     const color = nextColorRef.current;
     const correct = color === answer;
     const id = Date.now();
+    pendingResultRef.current = { id, color, correct };
 
     // Переворот на месте колоды, затем сдвиг влево/вправо в зону
     setFlight({ id, color, correct, phase: 'flip' });
@@ -325,24 +353,17 @@ export default function BWCards() {
 
     queueTimeout(() => {
       measureLayout();
-      setFlight({ id, color, correct, phase: 'settle' });
+      setFlight((prev) =>
+        prev && prev.id === id ? { id, color, correct, phase: 'settle' } : prev
+      );
     }, FLIP_MS);
 
     queueTimeout(() => {
-      if (correct) {
-        setCorrectCount((n) => n + 1);
-        setPlusTop(color);
-        setPlusFaceUp(true);
-      } else {
-        setWrongCount((n) => n + 1);
-        setMinusTop(color);
-        setMinusFaceUp(true);
+      if (!pendingResultRef.current || pendingResultRef.current.id !== id) {
+        return;
       }
-      setScoreHistory((prev) => {
-        const prevDiff = prev.length ? prev[prev.length - 1] : 0;
-        return [...prev, correct ? prevDiff + 1 : prevDiff - 1].slice(-50);
-      });
-      nextColorRef.current = rollColor(enabledColorsRef.current);
+      pendingResultRef.current = null;
+      applyGuessResult(color, correct);
       setFlight(null);
       setFlyActive(false);
       setCardFlipped(false);
@@ -493,7 +514,6 @@ export default function BWCards() {
                   type='button'
                   className={`bwc-guess bwc-guess--${option.id}`}
                   onClick={() => guess(option.id)}
-                  disabled={isBusy}
                   aria-label={option.ariaLabel}
                 >
                   <span className='bwc-guess-swatch' aria-hidden='true' />
