@@ -143,42 +143,48 @@
 .tdn-pad {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: clamp(3px, 1.2vw, 8px);
   max-width: 280px;
   margin: 0 auto 18px;
 }
 
 .tdn-key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   height: 48px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: clamp(8px, 2.5vw, 14px);
+  background: linear-gradient(160deg, #ffffff, #e7f4f1);
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: clamp(0.95rem, 3.2vw, 1.15rem);
   font-weight: 600;
   cursor: pointer;
-  box-shadow: var(--shadow);
-  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 6px 14px rgba(20, 42, 40, 0.05);
+  transition: transform 0.16s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
 .tdn-key:hover:not(:disabled) {
-  background: var(--surface-strong);
-  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  background: var(--accent-soft);
 }
 
 .tdn-key:active:not(:disabled) {
-  transform: translateY(1px) scale(0.98);
+  transform: translateY(1px) scale(0.97);
 }
 
 .tdn-key:disabled {
   opacity: 0.35;
   cursor: default;
   box-shadow: none;
+  transform: none;
+  background: var(--surface-solid);
+  border-color: var(--border-strong);
 }
 
 .tdn-key-action {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: var(--ink-soft);
 }
 
