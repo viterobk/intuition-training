@@ -20,8 +20,8 @@ const exercises = [
   },
   {
     to: '/num',
-    title: 'Числа от 1 до 9',
-    description: 'Выбирайте числа интуитивно и сужайте поле до верного ответа.',
+    title: 'Числа',
+    description: 'Найдите успех (зелёное) и избегите неудачи (красное).',
     icon: Pin,
     tone: 'tone-numbers',
   },

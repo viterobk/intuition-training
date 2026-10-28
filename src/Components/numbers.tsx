@@ -1,5 +1,5 @@
 /* eslint-disable import/no-anonymous-default-export */
-import { Button } from '@mui/material';
+import { Button, Switch } from '@mui/material';
 import CheckCircle from '@mui/icons-material/CheckCircle';
 import Warning from '@mui/icons-material/Warning';
 import { useEffect, useRef, useState } from 'react';
@@ -10,17 +10,21 @@ import './Numbers.css';
 const LEVEL_SIZES = [5, 4, 3, 2, 1] as const;
 const cardBackUrl = `${process.env.PUBLIC_URL}/cards/number-back.svg`;
 
+type DigitMode = 'one' | 'two';
+
 const emptyLevels = () =>
   LEVEL_SIZES.map((size) => Array.from({ length: size }, () => undefined as number | undefined));
 
-const generateResult = () => {
+const generateResult = (mode: DigitMode) => {
+  const lo = mode === 'one' ? 1 : 10;
+  const hi = mode === 'one' ? 9 : 99;
   let min = 2;
   let max = -1;
   const result = {
     good: -1,
     bad: -1,
   };
-  for (let i = 1; i <= 9; i++) {
+  for (let i = lo; i <= hi; i += 1) {
     const rnd = Math.random();
     if (rnd > max) {
       result.good = i;
@@ -39,19 +43,57 @@ const firstEmptyIndex = (row: (number | undefined)[]) =>
 
 const isRowFull = (row: (number | undefined)[]) => row.every((value) => value != null);
 
-export default function () {
-  document.title = 'Числа от 1 до 9';
+const modeTitle = (mode: DigitMode) =>
+  mode === 'one' ? 'Числа от 1 до 9' : 'Числа от 10 до 99';
 
-  const [hiddenResult, setHiddenResult] = useState(generateResult);
+const TOLERANCE = 2;
+
+const mirrorOf = (n: number): number =>
+  Number(String(n).padStart(2, '0').split('').reverse().join(''));
+
+/** В двузначном режиме: точное, ±2 или зеркало. В однозначном — только точное. */
+const matchesTarget = (guess: number, target: number, mode: DigitMode): boolean => {
+  if (guess === target) {
+    return true;
+  }
+  if (mode !== 'two') {
+    return false;
+  }
+  const diff = Math.abs(target - guess);
+  if (diff >= 1 && diff <= TOLERANCE) {
+    return true;
+  }
+  return mirrorOf(target) === guess;
+};
+
+const rowHasTarget = (
+  filledRow: number[],
+  good: number,
+  bad: number,
+  mode: DigitMode
+) =>
+  filledRow.some(
+    (value) => matchesTarget(value, good, mode) || matchesTarget(value, bad, mode)
+  );
+
+export default function () {
+  const [mode, setMode] = useState<DigitMode>('one');
+  const [hiddenResult, setHiddenResult] = useState(() => generateResult('one'));
   const [result, setResult] = useState<{ good?: number; bad?: number }>({});
   const [rows, setRows] = useState<(number | undefined)[][]>(emptyLevels);
   /** Индекс ряда, который сейчас заполняется */
   const [activeRow, setActiveRow] = useState(0);
-  /** null = клавиатура 1–9; иначе кнопки-числа для следующего ряда */
+  /** null = клавиатура; иначе кнопки-числа для следующего ряда */
   const [picker, setPicker] = useState<number[] | null>(null);
+  /** Черновик двузначного числа в текущем пустом слоте */
+  const [draft, setDraft] = useState('');
   const [secretsFlipped, setSecretsFlipped] = useState(false);
   const revealed = Boolean(result.good);
 
+  document.title = modeTitle(mode);
+
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
   const hiddenResultRef = useRef(hiddenResult);
   hiddenResultRef.current = hiddenResult;
   const rowsRef = useRef(rows);
@@ -60,6 +102,8 @@ export default function () {
   activeRowRef.current = activeRow;
   const pickerRef = useRef(picker);
   pickerRef.current = picker;
+  const draftRef = useRef(draft);
+  draftRef.current = draft;
   const revealedRef = useRef(revealed);
   revealedRef.current = revealed;
 
@@ -69,13 +113,15 @@ export default function () {
     filledRow: number[]
   ) => {
     const { good, bad } = hiddenResultRef.current;
-    const hasTarget = filledRow.includes(good) || filledRow.includes(bad);
+    const hasTarget = rowHasTarget(filledRow, good, bad, modeRef.current);
     const isLast = rowIndex >= nextRows.length - 1;
 
     if (!hasTarget || isLast) {
       setResult(hiddenResultRef.current);
       setPicker(null);
       pickerRef.current = null;
+      setDraft('');
+      draftRef.current = '';
       // Переворот после монтирования классов — чтобы CSS transition сработал
       requestAnimationFrame(() => {
         requestAnimationFrame(() => setSecretsFlipped(true));
@@ -88,6 +134,8 @@ export default function () {
     activeRowRef.current = nextActive;
     setPicker([...filledRow]);
     pickerRef.current = [...filledRow];
+    setDraft('');
+    draftRef.current = '';
   };
 
   const placeNumber = (number: number) => {
@@ -113,6 +161,8 @@ export default function () {
     row[slot] = number;
     setRows(nextRows);
     rowsRef.current = nextRows;
+    setDraft('');
+    draftRef.current = '';
 
     if (isRowFull(row)) {
       finishIfNeeded(
@@ -127,17 +177,54 @@ export default function () {
     if (pickerRef.current != null || revealedRef.current) {
       return;
     }
-    const row = rowsRef.current[activeRowRef.current];
-    if (!row || row.includes(digit)) {
+
+    if (modeRef.current === 'one') {
+      const row = rowsRef.current[activeRowRef.current];
+      if (!row || row.includes(digit)) {
+        return;
+      }
+      placeNumber(digit);
       return;
     }
-    placeNumber(digit);
+
+    // Двузначный режим: собираем число по цифрам
+    const row = rowsRef.current[activeRowRef.current];
+    if (!row || isRowFull(row)) {
+      return;
+    }
+
+    const current = draftRef.current;
+    if (current === '') {
+      if (digit === 0) {
+        return;
+      }
+      setDraft(String(digit));
+      draftRef.current = String(digit);
+      return;
+    }
+
+    if (current.length >= 2) {
+      return;
+    }
+
+    const value = Number(current + String(digit));
+    if (row.includes(value)) {
+      return;
+    }
+    placeNumber(value);
   };
 
   const clearLastFromKeyboard = () => {
     if (pickerRef.current != null || revealedRef.current) {
       return;
     }
+
+    if (modeRef.current === 'two' && draftRef.current !== '') {
+      setDraft('');
+      draftRef.current = '';
+      return;
+    }
+
     const rowIndex = activeRowRef.current;
     const nextRows = rowsRef.current.map((row) => [...row]);
     const row = nextRows[rowIndex];
@@ -149,6 +236,8 @@ export default function () {
         row[i] = undefined;
         setRows(nextRows);
         rowsRef.current = nextRows;
+        setDraft('');
+        draftRef.current = '';
         return;
       }
     }
@@ -169,8 +258,10 @@ export default function () {
     placeNumber(number);
   };
 
-  const reset = () => {
-    const nextHidden = generateResult();
+  const resetWithMode = (nextMode: DigitMode) => {
+    const nextHidden = generateResult(nextMode);
+    setMode(nextMode);
+    modeRef.current = nextMode;
     setResult({});
     setHiddenResult(nextHidden);
     hiddenResultRef.current = nextHidden;
@@ -181,7 +272,21 @@ export default function () {
     activeRowRef.current = 0;
     setPicker(null);
     pickerRef.current = null;
+    setDraft('');
+    draftRef.current = '';
     setSecretsFlipped(false);
+  };
+
+  const reset = () => {
+    resetWithMode(modeRef.current);
+  };
+
+  const changeMode = (_: unknown, checked: boolean) => {
+    const nextMode: DigitMode = checked ? 'two' : 'one';
+    if (nextMode === modeRef.current) {
+      return;
+    }
+    resetWithMode(nextMode);
   };
 
   useEffect(() => {
@@ -189,12 +294,23 @@ export default function () {
       if (e.metaKey || e.ctrlKey || e.altKey) {
         return;
       }
-      if (e.key >= '1' && e.key <= '9') {
+      if (e.key >= '0' && e.key <= '9') {
+        const digit = Number(e.key);
+        if (modeRef.current === 'one') {
+          if (digit < 1 || digit > 9) {
+            return;
+          }
+          e.preventDefault();
+          if (pickerRef.current == null) {
+            appendFromKeyboard(digit);
+          } else if (pickerRef.current.includes(digit)) {
+            pickFromButtons(digit);
+          }
+          return;
+        }
         e.preventDefault();
         if (pickerRef.current == null) {
-          appendFromKeyboard(Number(e.key));
-        } else if (pickerRef.current.includes(Number(e.key))) {
-          pickFromButtons(Number(e.key));
+          appendFromKeyboard(digit);
         }
         return;
       }
@@ -212,13 +328,37 @@ export default function () {
     activeRowValues.filter((value): value is number => value != null)
   );
 
+  const isPadDigitDisabled = (digit: number) => {
+    if (mode === 'one') {
+      return usedInActiveRow.has(digit);
+    }
+    if (draft === '') {
+      return digit === 0;
+    }
+    const value = Number(draft + String(digit));
+    return usedInActiveRow.has(value);
+  };
+
   return (
-    <div className='numbers page'>
-      <TopBar text='Числа от 1 до 9' />
+    <div className={`numbers page ${mode === 'two' ? 'is-two-digit' : ''}`.trim()}>
+      <TopBar text={modeTitle(mode)} />
       <div className='numbers-body page-section'>
         <p className='numbers-lead'>
-          Выберите числа, которые «звучат» правильно. Поле будет сужаться до финального ответа.
+          Найдите успех (зелёное число) и избегите неудачи (красное). Поле будет сужаться до ответа.
         </p>
+
+        <label className='numbers-mode-switch'>
+          <span className={mode === 'one' ? 'is-active' : ''}>1–9</span>
+          <Switch
+            checked={mode === 'two'}
+            onChange={changeMode}
+            color='primary'
+            size='small'
+            inputProps={{ 'aria-label': 'Двузначные числа' }}
+          />
+          <span className={mode === 'two' ? 'is-active' : ''}>10–99</span>
+        </label>
+
         <div className='numbers-board surface-panel'>
           <div className='numbers-secrets' aria-label='Скрытые числа'>
             <div
@@ -260,6 +400,9 @@ export default function () {
               good={result.good}
               bad={result.bad}
               isActive={!revealed && index === activeRow}
+              draft={!revealed && index === activeRow ? draft : undefined}
+              twoDigit={mode === 'two'}
+              fuzzyHits={mode === 'two'}
             />
           ))}
         </div>
@@ -268,7 +411,7 @@ export default function () {
           <div className='numbers-pad' role='group' aria-label='Клавиатура'>
             {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((key) => {
               const digit = Number(key);
-              const disabled = usedInActiveRow.has(digit);
+              const disabled = isPadDigitDisabled(digit);
               return (
                 <button
                   key={key}
@@ -290,7 +433,19 @@ export default function () {
             >
               ⌫
             </button>
-            <span className='numbers-key-spacer' aria-hidden='true' />
+            {mode === 'two' ? (
+              <button
+                type='button'
+                className='numbers-key'
+                onClick={() => appendFromKeyboard(0)}
+                disabled={isPadDigitDisabled(0)}
+                aria-disabled={isPadDigitDisabled(0)}
+              >
+                0
+              </button>
+            ) : (
+              <span className='numbers-key-spacer' aria-hidden='true' />
+            )}
             <span className='numbers-key-spacer' aria-hidden='true' />
           </div>
         )}

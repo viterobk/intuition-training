@@ -3,10 +3,40 @@
 }
 
 .numbers-lead {
-  margin: 0 auto 18px;
-  max-width: 36ch;
+  margin: 0 auto 12px;
+  max-width: 38ch;
   color: var(--ink-soft);
   font-size: 1rem;
+}
+
+.numbers-mode-switch {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 2px;
+  margin: 0 auto 14px;
+  color: var(--ink-soft);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.numbers-mode-switch .MuiSwitch-root {
+  margin: 0 2px;
+}
+
+.numbers-mode-switch span.is-active {
+  color: var(--accent-deep);
+}
+
+.numbers.is-two-digit .numbers-secret-front {
+  font-size: clamp(0.85rem, 3vw, 1.05rem);
+}
+
+.numbers.is-two-digit .numbers-picker .numbers-key {
+  font-size: clamp(0.8rem, 2.8vw, 0.95rem);
 }
 
 .numbers-board {
