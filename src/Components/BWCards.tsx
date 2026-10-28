@@ -267,6 +267,8 @@ export default function BWCards() {
   const [plusFaceUp, setPlusFaceUp] = useState(false);
   const [minusFaceUp, setMinusFaceUp] = useState(false);
   const [scoreHistory, setScoreHistory] = useState<number[]>([]);
+  const [wrongStreak, setWrongStreak] = useState(0);
+  const [mirrorState, setMirrorState] = useState(false);
   const [showChart, setShowChart] = useState(false);
   const [flight, setFlight] = useState<Flight | null>(null);
   const [flyActive, setFlyActive] = useState(false);
@@ -305,6 +307,15 @@ export default function BWCards() {
       setShowChart(false);
     }
   }, [chartAllowed, showChart]);
+
+  useEffect(() => {
+    if (colorMode === 'bw' && wrongStreak >= 5) {
+      setMirrorState(true);
+    }
+    if (colorMode !== 'bw') {
+      setMirrorState(false);
+    }
+  }, [wrongStreak, colorMode]);
 
   const persist = (mode: ColorMode, custom: CardColor[]) => {
     saveSettings({ mode, custom });
@@ -361,6 +372,8 @@ export default function BWCards() {
     setPlusFaceUp(false);
     setMinusFaceUp(false);
     setScoreHistory([]);
+    setWrongStreak(0);
+    setMirrorState(false);
     setFlight(null);
     setFlyActive(false);
     setCardFlipped(false);
@@ -398,10 +411,13 @@ export default function BWCards() {
       setCorrectCount((n) => n + 1);
       setPlusTop(color);
       setPlusFaceUp(true);
+      setWrongStreak(0);
+      setMirrorState(false);
     } else {
       setWrongCount((n) => n + 1);
       setMinusTop(color);
       setMinusFaceUp(true);
+      setWrongStreak((n) => n + 1);
     }
     setScoreHistory((prev) => {
       const prevDiff = prev.length ? prev[prev.length - 1] : 0;
@@ -638,6 +654,12 @@ export default function BWCards() {
               ))}
             </div>
           </div>
+
+          {colorMode === 'bw' && mirrorState && (
+            <div className='bwc-mirror-notice' role='status'>
+              Зеркальное состояние
+            </div>
+          )}
 
           {chartAllowed && (
             <div className='bwc-chart-toggle'>

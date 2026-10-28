@@ -183,13 +183,24 @@
   transition: transform 0.16s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
-.numbers-key:hover:not(:disabled) {
-  transform: translateY(-2px);
-  background: var(--accent-soft);
+@media (hover: hover) and (pointer: fine) {
+  .numbers-key:hover:not(:disabled) {
+    transform: translateY(-2px);
+    background: var(--accent-soft);
+  }
 }
 
 .numbers-key:active:not(:disabled) {
   transform: translateY(1px) scale(0.97);
+}
+
+.numbers-key:focus {
+  outline: none;
+}
+
+.numbers-key:focus:not(:focus-visible) {
+  background: linear-gradient(160deg, #ffffff, #e7f4f1);
+  transform: none;
 }
 
 .numbers-key:disabled {
