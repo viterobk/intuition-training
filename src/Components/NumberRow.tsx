@@ -5,10 +5,11 @@ interface INumbersRowProps {
   numbers?: any[];
   good?: number;
   bad?: number;
+  isActive?: boolean;
   onSelect?: (value: any) => void;
 }
 
-export default function({ numbers, good, bad, onSelect }: INumbersRowProps) {
+export default function({ numbers, good, bad, isActive, onSelect }: INumbersRowProps) {
   if (!numbers || !numbers.length) {
     return null
   }
@@ -30,11 +31,19 @@ export default function({ numbers, good, bad, onSelect }: INumbersRowProps) {
     return classes.join(' ');
   }
 
-  return (<div className='numrow'>
-    {
-      numbers.map((number, index) => {
-        return (<div key={index} className={getDigClass(number)} onClick={() => onSelect?.(number)}>{number}</div>)
-      })
-    }
-  </div>)
+  return (
+    <div className={`numrow ${isActive ? 'is-active' : ''}`.trim()}>
+      {numbers.map((number, index) => {
+        return (
+          <div
+            key={index}
+            className={getDigClass(number)}
+            onClick={() => onSelect?.(number)}
+          >
+            {number}
+          </div>
+        );
+      })}
+    </div>
+  );
 }

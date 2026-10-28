@@ -8,6 +8,16 @@
   margin: 10px 0;
 }
 
+.numrow.is-active .numrow-dig {
+  border-width: 2px;
+  border-color: rgba(20, 42, 40, 0.42);
+}
+
+.numrow.is-active .numrow-dig.numrow-dig-empty {
+  border-width: 2px;
+  border-color: rgba(20, 42, 40, 0.38);
+}
+
 .numrow .numrow-dig {
   display: flex;
   flex: 1 1 0;

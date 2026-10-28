@@ -8,7 +8,7 @@ const SLOT_COUNT = 6;
 const TOLERANCE = 2;
 const FLIP_MS = 550;
 const FLIP_STAGGER_MS = 250;
-const cardBackUrl = `${process.env.PUBLIC_URL}/cards/back.svg`;
+const cardBackUrl = `${process.env.PUBLIC_URL}/cards/number-back.svg`;
 
 type GuessSlot = string; // '' | '1' | '12'
 

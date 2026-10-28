@@ -47,12 +47,16 @@
 .tdn-card-face {
   position: absolute;
   inset: 0;
-  border-radius: 12px;
-  overflow: hidden;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   box-shadow: 0 10px 22px rgba(20, 42, 40, 0.12);
-  border: 1px solid rgba(20, 42, 40, 0.12);
+}
+
+.tdn-card-back {
+  overflow: visible;
+  border: none;
+  border-radius: 0;
+  background: transparent;
 }
 
 .tdn-card-back img {
@@ -66,6 +70,10 @@
   display: grid;
   place-items: center;
   transform: rotateY(180deg);
+  /* 14/52 — same ratio as number-back.svg rx/360 */
+  border-radius: 26.923%;
+  overflow: hidden;
+  border: 1px solid rgba(20, 42, 40, 0.12);
   background: linear-gradient(160deg, #f7fbfa, #e8f2f0);
   color: var(--accent-deep);
   font-family: var(--font-display);
