@@ -22,8 +22,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet" />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <title>Тренировка интуиции</title>
   </head>
   <body>
@@ -39,43 +37,5 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('service-worker.js').then(function(registration) {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-
-            registration.addEventListener('updatefound', function() {
-              var newWorker = registration.installing;
-              if (!newWorker) {
-                return;
-              }
-
-              newWorker.addEventListener('statechange', function() {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  newWorker.postMessage({ type: 'SKIP_WAITING' });
-                }
-              });
-            });
-
-            navigator.serviceWorker.addEventListener('controllerchange', function() {
-              window.location.reload();
-            });
-
-            document.addEventListener('visibilitychange', function() {
-              if (!document.hidden) {
-                registration.update();
-              }
-            });
-          }, function(err) {
-            console.log('ServiceWorker registration failed: ', err);
-          }).catch(function(err) {
-            console.log(err);
-          });
-        });
-      } else {
-        console.log('service worker is not supported');
-      }
-    </script>
   </body>
 </html>

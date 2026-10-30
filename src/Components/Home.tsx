@@ -8,7 +8,6 @@ import Pin from '@mui/icons-material/Pin';
 import LooksTwo from '@mui/icons-material/LooksTwo';
 import Casino from '@mui/icons-material/Casino';
 import ArrowForward from '@mui/icons-material/ArrowForward';
-import InstallPwaButton from './InstallPwaButton';
 
 const exercises = [
   {
@@ -53,7 +52,6 @@ class Home extends Component {
     document.title = 'Тренировка интуиции';
     return (
       <div className='Home page'>
-        <InstallPwaButton />
         <section className='Home-hero page-section'>
           <p className='Home-kicker'>Практика внимания</p>
           <h1 className='Home-brand'>Тренировка интуиции</h1>
