@@ -1,3 +1,11 @@
+.App-page-fallback {
+  padding: 48px var(--space);
+  color: var(--ink-soft);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
 .App {
   text-align: center;
   display: block;

@@ -1,7 +1,6 @@
 /* eslint-disable import/no-anonymous-default-export */
 import { IconButton, Toolbar, Typography } from '@mui/material';
 import Home from '@mui/icons-material/Home';
-import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import './TopBar.css'
 
@@ -34,16 +33,11 @@ export default (props) => {
     checkTimeObj.callback = () => {
       setTimeString(getTimeString(startTime));
     }
-    const navigate = useNavigate();
-    const homeClicked = () => {
-        const e = { cancel: false };
-        if(!e.cancel) navigate('/');
-    }
     const renderHomeButton = () => {
         return <IconButton
               className='top-bar-home'
               color='inherit'
-              onClick={homeClicked}
+              href='/'
               aria-label='На главную'
           >
             <Home/>

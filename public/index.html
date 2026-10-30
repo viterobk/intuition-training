@@ -36,43 +36,5 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('service-worker.js').then(function(registration) {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-
-            var hadController = !!navigator.serviceWorker.controller;
-
-            registration.addEventListener('updatefound', function() {
-              var newWorker = registration.installing;
-              if (!newWorker) {
-                return;
-              }
-
-              newWorker.addEventListener('statechange', function() {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  newWorker.postMessage({ type: 'SKIP_WAITING' });
-                }
-              });
-            });
-
-            navigator.serviceWorker.addEventListener('controllerchange', function() {
-              window.location.reload();
-            });
-
-            if (hadController && registration.active) {
-              registration.active.postMessage({ type: 'STARTUP_UPDATE' });
-            }
-          }, function(err) {
-            console.log('ServiceWorker registration failed: ', err);
-          }).catch(function(err) {
-            console.log(err);
-          });
-        });
-      } else {
-        console.log('service worker is not supported');
-      }
-    </script>
   </body>
 </html>

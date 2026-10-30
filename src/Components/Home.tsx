@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
 import './Home.css';
 import { observer } from 'mobx-react';
 import StyleIcon from '@mui/icons-material/Style';
@@ -8,7 +7,6 @@ import Pin from '@mui/icons-material/Pin';
 import LooksTwo from '@mui/icons-material/LooksTwo';
 import Casino from '@mui/icons-material/Casino';
 import ArrowForward from '@mui/icons-material/ArrowForward';
-import InstallPwaButton from './InstallPwaButton';
 
 const exercises = [
   {
@@ -53,7 +51,6 @@ class Home extends Component {
     document.title = 'Тренировка интуиции';
     return (
       <div className='Home page'>
-        <InstallPwaButton />
         <section className='Home-hero page-section'>
           <p className='Home-kicker'>Практика внимания</p>
           <h1 className='Home-brand'>Тренировка интуиции</h1>
@@ -65,10 +62,10 @@ class Home extends Component {
           {exercises.map((exercise, index) => {
             const Icon = exercise.icon;
             return (
-              <Link
+              <a
                 key={exercise.to}
                 className={`Home-card ${exercise.tone}`}
-                to={exercise.to}
+                href={exercise.to}
                 style={{ animationDelay: `${0.12 + index * 0.08}s` }}
               >
                 <div className='Home-card-icon' aria-hidden='true'>
@@ -81,7 +78,7 @@ class Home extends Component {
                 <span className='Home-card-go' aria-hidden='true'>
                   <ArrowForward fontSize='small' />
                 </span>
-              </Link>
+              </a>
             );
           })}
         </section>
