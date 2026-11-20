@@ -1,46 +1,45 @@
-# Getting Started with Create React App
+# Тренировка интуиции
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Веб-приложение с короткими упражнениями, в которых нужно заметить внутренний сигнал и сразу проверить его. С главной страницы открываются пять независимых тренировок. У каждой свой адрес, общий таймер сессии в шапке и возврат на главную.
 
-## Available Scripts
+| Упражнение | Адрес | Что происходит |
+| --- | --- | --- |
+| Цветные карты | `/bwc` | Нужно назвать цвет следующей карты. Палитра: чёрный и белый, чёрный, серый и белый, либо свой набор из десяти цветов. Для первых двух режимов ведётся счёт и график точности. |
+| Числа | `/num` | Нужно найти скрытое «успешное» число и не попасть в «неудачное». Поле сужается, пока не останется ответ. Режим 1–9 или 10–99; во втором зачитываются точное совпадение, отклонение ±2 и зеркальное число. |
+| Двузначные числа | `/twodigit` | Нужно назвать шесть разных чисел от 10 до 99 и сравнить их со скрытыми. Засчитываются точное совпадение, близость ±2 и зеркало. |
+| Игральные кубики | `/dice` | Выбор от одного до шести кубиков и бросок. На экране остаются последние броски. |
+| Случайная карта | `/random` | Колода из 36 карт (от шестёрки до туза). Карты тянутся по одной, пока колода не закончится. |
 
-In the project directory, you can run:
+Приложение собрано на React 17, TypeScript и React Router. Сборка — Create React App (`react-scripts`). Состояние интерфейса живёт в компонентах; MobX подключён на главной странице. Настройки палитры цветных карт сохраняются в `localStorage`.
 
-### `yarn start`
+## Локальный запуск
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Нужны Node.js 14 или новее и npm. Зависимости зафиксированы в `package-lock.json`.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+```bash
+npm install
+npm start
+```
 
-### `yarn test`
+Команда `npm start` поднимает dev-сервер с горячей перезагрузкой. Приложение открывается на [http://localhost:3000](http://localhost:3000).
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Другие локальные команды:
 
-### `yarn build`
+```bash
+npm test
+npm run build
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+`npm test` запускает Jest в режиме наблюдения. `npm run build` собирает продакшен-бандл в каталог `build`.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Деплой
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Сайт — статические файлы из каталога `build`. В `package.json` указано `"homepage": "./"`, поэтому сборка открывается и с корня домена, и из подкаталога. Адреса упражнений идут через hash: `/#/bwc`, `/#/num`, `/#/twodigit`, `/#/dice`, `/#/random`.
 
-### `yarn eject`
+Публикация на GitHub Pages:
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```bash
+npm run deploy
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+Команда собирает проект и выкладывает `build` в ветку `gh-pages`. Как привязать поддомен через CNAME и как раздавать ту же сборку со своего сервера, описано в [DEPLOY.md](DEPLOY.md).
