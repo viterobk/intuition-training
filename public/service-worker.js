@@ -2,6 +2,10 @@
 
 const CACHE_NAME = 'intuition-training-cache';
 
+// Mobile carriers sometimes blackhole update requests instead of failing them.
+// Stop the update after this delay and keep serving the cached app.
+const UPDATE_TIMEOUT_MS = 12000;
+
 const SHELL_URLS = [
   './',
   './index.html',
@@ -58,20 +62,62 @@ function getUrlsFromManifest(manifest) {
   return Array.from(urls);
 }
 
-async function precacheUrls(urls) {
+// After the first stalled request, serve the rest of this page from cache at once
+// so HTML, scripts and images do not each wait out their own timeout.
+let skipNetwork = false;
+
+function fetchWithTimeout(resource, options, timeoutMs) {
+  if (skipNetwork) {
+    return Promise.reject(new DOMException('Update timed out', 'AbortError'));
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const parentSignal = options && options.signal;
+
+  if (parentSignal) {
+    if (parentSignal.aborted) {
+      controller.abort();
+    } else {
+      parentSignal.addEventListener('abort', () => controller.abort(), { once: true });
+    }
+  }
+
+  return fetch(resource, Object.assign({}, options, { signal: controller.signal })).finally(() => {
+    clearTimeout(timeoutId);
+  });
+}
+
+async function precacheUrls(urls, signal) {
+  const entries = await Promise.all(
+    urls.map(async (url) => {
+      try {
+        const response = await fetch(url, { cache: 'no-cache', signal });
+        if (!response.ok) {
+          console.warn('[SW] Failed to precache:', url, response.status);
+          return null;
+        }
+        return { url, response };
+      } catch (error) {
+        if (signal.aborted) {
+          throw error;
+        }
+        console.warn('[SW] Failed to precache:', url, error);
+        return null;
+      }
+    })
+  );
+
+  if (signal.aborted) {
+    throw new DOMException('Update timed out', 'AbortError');
+  }
+
   const cache = await caches.open(CACHE_NAME);
 
   await Promise.all(
-    urls.map(async (url) => {
-      try {
-        const response = await fetch(url, { cache: 'no-cache' });
-        if (response.ok) {
-          await cache.put(url, response);
-        }
-      } catch (error) {
-        console.warn('[SW] Failed to precache:', url, error);
-      }
-    })
+    entries
+      .filter(Boolean)
+      .map((entry) => cache.put(entry.url, entry.response))
   );
 
   const keys = await cache.keys();
@@ -96,13 +142,20 @@ async function putInCache(request, response) {
 }
 
 async function networkFirst(request) {
+  if (request.mode === 'navigate') {
+    skipNetwork = false;
+  }
+
   try {
-    const response = await fetch(request);
+    const response = await fetchWithTimeout(request, {}, UPDATE_TIMEOUT_MS);
     if (response.ok) {
       await putInCache(request, response.clone());
     }
     return response;
   } catch (error) {
+    if (error && error.name === 'AbortError') {
+      skipNetwork = true;
+    }
     const cached = await caches.match(request);
     if (cached) {
       return cached;
@@ -120,14 +173,31 @@ async function networkFirst(request) {
 }
 
 self.addEventListener('install', (event) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), UPDATE_TIMEOUT_MS);
+
   event.waitUntil(
     (async () => {
-      const manifestResponse = await fetch('./asset-manifest.json', { cache: 'no-cache' });
-      const manifest = await manifestResponse.json();
-      const urls = getUrlsFromManifest(manifest);
+      try {
+        const manifestResponse = await fetch('./asset-manifest.json', {
+          cache: 'no-cache',
+          signal: controller.signal,
+        });
+        if (!manifestResponse.ok) {
+          throw new Error('[SW] asset-manifest.json request failed: ' + manifestResponse.status);
+        }
 
-      await precacheUrls(urls);
-      await self.skipWaiting();
+        const manifest = await manifestResponse.json();
+        const urls = getUrlsFromManifest(manifest);
+
+        await precacheUrls(urls, controller.signal);
+        await self.skipWaiting();
+      } catch (error) {
+        console.warn('[SW] Update stopped, launching cached version:', error);
+        throw error;
+      } finally {
+        clearTimeout(timer);
+      }
     })()
   );
 });
