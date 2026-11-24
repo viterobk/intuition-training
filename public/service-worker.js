@@ -3,7 +3,8 @@
 const CACHE_NAME = 'intuition-training-cache';
 
 // Mobile carriers sometimes blackhole update requests instead of failing them.
-// Stop the update after this delay and keep serving the cached app.
+// The update runs once at app startup and is abandoned after this delay.
+// Page requests never wait on the network: they are served from this cache.
 const UPDATE_TIMEOUT_MS = 12000;
 
 const SHELL_URLS = [
@@ -11,10 +12,12 @@ const SHELL_URLS = [
   './index.html',
   './manifest.json',
   './favicon.ico',
+  './favicon-32.png',
   './logo192.png',
   './logo512.png',
   './asset-manifest.json',
   './cards/back.svg',
+  './cards/number-back.svg',
 ];
 
 const CARD_FILES = [
@@ -62,30 +65,23 @@ function getUrlsFromManifest(manifest) {
   return Array.from(urls);
 }
 
-// After the first stalled request, serve the rest of this page from cache at once
-// so HTML, scripts and images do not each wait out their own timeout.
-let skipNetwork = false;
-
-function fetchWithTimeout(resource, options, timeoutMs) {
-  if (skipNetwork) {
-    return Promise.reject(new DOMException('Update timed out', 'AbortError'));
+function isCacheable(url, response) {
+  if (!response.ok) {
+    return false;
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  const parentSignal = options && options.signal;
-
-  if (parentSignal) {
-    if (parentSignal.aborted) {
-      controller.abort();
-    } else {
-      parentSignal.addEventListener('abort', () => controller.abort(), { once: true });
-    }
+  const path = url.split('?')[0];
+  if (!path.endsWith('.svg')) {
+    return true;
   }
 
-  return fetch(resource, Object.assign({}, options, { signal: controller.signal })).finally(() => {
-    clearTimeout(timeoutId);
-  });
+  const type = (response.headers.get('content-type') || '').toLowerCase();
+  if (!type) {
+    return true;
+  }
+
+  // A captive portal often answers 200 text/html. Never store that over a card.
+  return type.includes('svg') || type.includes('xml');
 }
 
 async function precacheUrls(urls, signal) {
@@ -93,7 +89,7 @@ async function precacheUrls(urls, signal) {
     urls.map(async (url) => {
       try {
         const response = await fetch(url, { cache: 'no-cache', signal });
-        if (!response.ok) {
+        if (!isCacheable(url, response)) {
           console.warn('[SW] Failed to precache:', url, response.status);
           return null;
         }
@@ -132,44 +128,54 @@ async function precacheUrls(urls, signal) {
   );
 }
 
-async function putInCache(request, response) {
-  if (!response.ok) {
-    return;
+async function fetchAndPrecache(signal) {
+  const manifestResponse = await fetch('./asset-manifest.json', {
+    cache: 'no-cache',
+    signal,
+  });
+  if (!manifestResponse.ok) {
+    throw new Error('[SW] asset-manifest.json request failed: ' + manifestResponse.status);
   }
 
-  const cache = await caches.open(CACHE_NAME);
-  await cache.put(request, response);
+  const manifest = await manifestResponse.json();
+  const urls = getUrlsFromManifest(manifest);
+  await precacheUrls(urls, signal);
 }
 
-async function networkFirst(request) {
+let updateInFlight = null;
+
+function startupUpdate() {
+  if (updateInFlight) {
+    return updateInFlight;
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), UPDATE_TIMEOUT_MS);
+
+  updateInFlight = fetchAndPrecache(controller.signal).catch((error) => {
+    console.warn('[SW] Update stopped, keeping cached version:', error);
+  }).finally(() => {
+    clearTimeout(timer);
+    updateInFlight = null;
+  });
+
+  return updateInFlight;
+}
+
+async function fromCache(request) {
+  const cached = await caches.match(request);
+  if (cached) {
+    return cached;
+  }
+
   if (request.mode === 'navigate') {
-    skipNetwork = false;
+    const cachedIndex = await caches.match('./index.html');
+    if (cachedIndex) {
+      return cachedIndex;
+    }
   }
 
-  try {
-    const response = await fetchWithTimeout(request, {}, UPDATE_TIMEOUT_MS);
-    if (response.ok) {
-      await putInCache(request, response.clone());
-    }
-    return response;
-  } catch (error) {
-    if (error && error.name === 'AbortError') {
-      skipNetwork = true;
-    }
-    const cached = await caches.match(request);
-    if (cached) {
-      return cached;
-    }
-
-    if (request.mode === 'navigate') {
-      const cachedIndex = await caches.match('./index.html');
-      if (cachedIndex) {
-        return cachedIndex;
-      }
-    }
-
-    throw error;
-  }
+  return new Response('', { status: 504, statusText: 'Not in cache' });
 }
 
 self.addEventListener('install', (event) => {
@@ -179,18 +185,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
       try {
-        const manifestResponse = await fetch('./asset-manifest.json', {
-          cache: 'no-cache',
-          signal: controller.signal,
-        });
-        if (!manifestResponse.ok) {
-          throw new Error('[SW] asset-manifest.json request failed: ' + manifestResponse.status);
-        }
-
-        const manifest = await manifestResponse.json();
-        const urls = getUrlsFromManifest(manifest);
-
-        await precacheUrls(urls, controller.signal);
+        await fetchAndPrecache(controller.signal);
         await self.skipWaiting();
       } catch (error) {
         console.warn('[SW] Update stopped, launching cached version:', error);
@@ -227,11 +222,19 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  event.respondWith(networkFirst(event.request));
+  event.respondWith(fromCache(event.request));
 });
 
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
+  if (!event.data) {
+    return;
+  }
+
+  if (event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+
+  if (event.data.type === 'STARTUP_UPDATE') {
+    event.waitUntil(startupUpdate());
   }
 });
