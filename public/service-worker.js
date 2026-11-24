@@ -1,10 +1,13 @@
 /* eslint-disable no-restricted-globals */
 
-const CACHE_NAME = 'intuition-training-cache';
+const LEGACY_CACHE = 'intuition-training-cache';
+const META_CACHE = 'intuition-training-meta';
+const ACTIVE_URL = './active-cache';
 
 // Mobile carriers sometimes blackhole update requests instead of failing them.
 // The update runs once at app startup and is abandoned after this delay.
-// Page requests never wait on the network: they are served from this cache.
+// Downloads go into a separate cache under temporary names. The app keeps
+// reading the current cache until every file has arrived and the caches are swapped.
 const UPDATE_TIMEOUT_MS = 12000;
 
 const SHELL_URLS = [
@@ -65,6 +68,12 @@ function getUrlsFromManifest(manifest) {
   return Array.from(urls);
 }
 
+function incomingUrl(url) {
+  const absolute = new URL(url, self.location);
+  absolute.searchParams.set('sw-incoming', '1');
+  return absolute.href;
+}
+
 function isCacheable(url, response) {
   if (!response.ok) {
     return false;
@@ -84,48 +93,94 @@ function isCacheable(url, response) {
   return type.includes('svg') || type.includes('xml');
 }
 
-async function precacheUrls(urls, signal) {
-  const entries = await Promise.all(
-    urls.map(async (url) => {
-      try {
-        const response = await fetch(url, { cache: 'no-cache', signal });
-        if (!isCacheable(url, response)) {
-          console.warn('[SW] Failed to precache:', url, response.status);
-          return null;
-        }
-        return { url, response };
-      } catch (error) {
-        if (signal.aborted) {
-          throw error;
-        }
-        console.warn('[SW] Failed to precache:', url, error);
-        return null;
-      }
-    })
-  );
+function isContentCache(name) {
+  return name.startsWith('intuition-training-') && name !== META_CACHE;
+}
 
-  if (signal.aborted) {
-    throw new DOMException('Update timed out', 'AbortError');
+let activeCacheNamePromise = null;
+
+function rememberActiveCache(name) {
+  activeCacheNamePromise = Promise.resolve(name);
+}
+
+async function readStoredCacheName() {
+  const meta = await caches.open(META_CACHE);
+  const stored = await meta.match(ACTIVE_URL);
+  if (stored) {
+    const name = (await stored.text()).trim();
+    if (isContentCache(name)) {
+      return name;
+    }
   }
 
-  const cache = await caches.open(CACHE_NAME);
+  const keys = await caches.keys();
+  if (keys.includes(LEGACY_CACHE)) {
+    return LEGACY_CACHE;
+  }
 
-  await Promise.all(
-    entries
-      .filter(Boolean)
-      .map((entry) => cache.put(entry.url, entry.response))
-  );
+  return null;
+}
 
-  const keys = await cache.keys();
-  const allowed = new Set(urls.map((url) => new URL(url, self.location).href));
+function readActiveCacheName() {
+  if (!activeCacheNamePromise) {
+    activeCacheNamePromise = readStoredCacheName();
+  }
+  return activeCacheNamePromise;
+}
 
-  await Promise.all(
-    keys.map(async (request) => {
-      if (!allowed.has(request.url)) {
-        await cache.delete(request);
+async function setActiveCacheName(name) {
+  const meta = await caches.open(META_CACHE);
+  await meta.put(ACTIVE_URL, new Response(name, {
+    headers: { 'Content-Type': 'text/plain' },
+  }));
+  rememberActiveCache(name);
+}
+
+async function storeIncoming(staging, urls, signal) {
+  let firstError = null;
+
+  await Promise.all(urls.map(async (url) => {
+    try {
+      const response = await fetch(url, { cache: 'no-cache', signal });
+      if (!isCacheable(url, response)) {
+        throw new Error('[SW] Failed to precache: ' + url + ' ' + response.status);
       }
-    })
-  );
+      if (firstError || signal.aborted) {
+        return;
+      }
+      await staging.put(incomingUrl(url), response);
+    } catch (error) {
+      if (!firstError) {
+        firstError = error;
+      }
+    }
+  }));
+
+  if (signal.aborted) {
+    throw firstError || new DOMException('Update timed out', 'AbortError');
+  }
+  if (firstError) {
+    throw firstError;
+  }
+}
+
+async function publishIncoming(staging, urls) {
+  for (const url of urls) {
+    const staged = await staging.match(incomingUrl(url));
+    if (!staged) {
+      throw new Error('[SW] Incomplete update, not switching cache: ' + url);
+    }
+    await staging.put(url, staged);
+  }
+
+  await Promise.all(urls.map((url) => staging.delete(incomingUrl(url))));
+
+  for (const url of urls) {
+    const ready = await staging.match(url);
+    if (!ready) {
+      throw new Error('[SW] Incomplete update, not switching cache: ' + url);
+    }
+  }
 }
 
 async function fetchAndPrecache(signal) {
@@ -139,12 +194,40 @@ async function fetchAndPrecache(signal) {
 
   const manifest = await manifestResponse.json();
   const urls = getUrlsFromManifest(manifest);
-  await precacheUrls(urls, signal);
+  const current = await readStoredCacheName();
+  const stagingName = 'intuition-training-incoming-'
+    + Date.now().toString(36)
+    + '-'
+    + Math.random().toString(36).slice(2);
+  const staging = await caches.open(stagingName);
+  let committed = false;
+
+  try {
+    await storeIncoming(staging, urls, signal);
+    await publishIncoming(staging, urls);
+
+    const latest = await readStoredCacheName();
+    if (latest !== current) {
+      throw new Error('[SW] Update superseded');
+    }
+
+    await setActiveCacheName(stagingName);
+    committed = true;
+
+    // During install the previous worker is still serving the old cache.
+    if (current && current !== stagingName && self.registration.active === self) {
+      await caches.delete(current);
+    }
+  } finally {
+    if (!committed) {
+      await caches.delete(stagingName);
+    }
+  }
 }
 
 let updateInFlight = null;
 
-function startupUpdate() {
+function startUpdate() {
   if (updateInFlight) {
     return updateInFlight;
   }
@@ -152,9 +235,7 @@ function startupUpdate() {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), UPDATE_TIMEOUT_MS);
 
-  updateInFlight = fetchAndPrecache(controller.signal).catch((error) => {
-    console.warn('[SW] Update stopped, keeping cached version:', error);
-  }).finally(() => {
+  updateInFlight = fetchAndPrecache(controller.signal).finally(() => {
     clearTimeout(timer);
     updateInFlight = null;
   });
@@ -163,13 +244,19 @@ function startupUpdate() {
 }
 
 async function fromCache(request) {
-  const cached = await caches.match(request);
+  const cacheName = await readActiveCacheName();
+  if (!cacheName) {
+    return new Response('', { status: 504, statusText: 'Not in cache' });
+  }
+
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request);
   if (cached) {
     return cached;
   }
 
   if (request.mode === 'navigate') {
-    const cachedIndex = await caches.match('./index.html');
+    const cachedIndex = await cache.match('./index.html');
     if (cachedIndex) {
       return cachedIndex;
     }
@@ -179,34 +266,27 @@ async function fromCache(request) {
 }
 
 self.addEventListener('install', (event) => {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), UPDATE_TIMEOUT_MS);
-
   event.waitUntil(
-    (async () => {
-      try {
-        await fetchAndPrecache(controller.signal);
-        await self.skipWaiting();
-      } catch (error) {
+    startUpdate()
+      .then(() => self.skipWaiting())
+      .catch((error) => {
         console.warn('[SW] Update stopped, launching cached version:', error);
         throw error;
-      } finally {
-        clearTimeout(timer);
-      }
-    })()
+      })
   );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
+      await self.clients.claim();
+      const active = await readActiveCacheName();
       const keys = await caches.keys();
       await Promise.all(
         keys
-          .filter((key) => key.startsWith('intuition-training-') && key !== CACHE_NAME)
+          .filter((key) => isContentCache(key) && key !== active)
           .map((key) => caches.delete(key))
       );
-      await self.clients.claim();
     })()
   );
 });
@@ -235,6 +315,8 @@ self.addEventListener('message', (event) => {
   }
 
   if (event.data.type === 'STARTUP_UPDATE') {
-    event.waitUntil(startupUpdate());
+    event.waitUntil(startUpdate().catch((error) => {
+      console.warn('[SW] Update stopped, keeping cached version:', error);
+    }));
   }
 });
